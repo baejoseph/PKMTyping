@@ -137,6 +137,7 @@ SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
 LAST_CORRECT_LETTER_EVENT = pygame.USEREVENT + 3
 JIGGLE_EVENT = pygame.USEREVENT + 4
+SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
 
 # Helper functions
 def spawn_pokemon():
@@ -150,6 +151,7 @@ def spawn_pokemon():
         "bg": load_bg_image(pokemon["id"]),
         "cry": load_sound(pokemon["id"]),
         "legendary": is_legendary(pokemon["base"]),
+        "get_this_one": True,
         "time_limit": get_time_limit(pokemon["base"])  # 10 seconds
     }
     typed_name = ""
@@ -169,26 +171,21 @@ def draw_timer_bar(surface, x, y, width, height, elapsed_time, time_limit):
     
 def add_message(text):
     messages.append({"text": text, "start_time": pygame.time.get_ticks()})
-    pygame.time.set_timer(MESSAGE_CLEAR_EVENT, 3000, True)
+    pygame.time.set_timer(MESSAGE_CLEAR_EVENT, 1000, True)
 
 def add_special_message(text):
     special_message["text"] = text
     special_message["start_time"] = pygame.time.get_ticks()
+    pygame.time.set_timer(SPECIAL_MESSAGE_CLEAR_EVENT, 1000, True)
 
 def display_special_message():
     current_time = pygame.time.get_ticks()
-    if current_time - special_message["start_time"] > 1000:  # Display for 1 seconds
-        special_message["text"] = ""
-    else: 
-        draw_text(screen, special_message["text"], font, BLACK, (SCREEN_WIDTH - font.size(special_message["text"])[0]-50)//2, 50)
+    draw_text(screen, special_message["text"], font, BLACK, (SCREEN_WIDTH - font.size(special_message["text"])[0]-50)//2, 100)
 
 def display_messages():
     current_time = pygame.time.get_ticks()
     for i, message in enumerate(messages[:]):
-        if current_time - message["start_time"] > 1000:  # Display for 1 seconds
-            messages.remove(message)
-        else:
-            draw_text(screen, message["text"], font, BLACK, SCREEN_WIDTH - font.size(message["text"])[0]-50, 50+i*50)
+        draw_text(screen, message["text"], font, BLACK, SCREEN_WIDTH - font.size(message["text"])[0]-50, 50+i*50)
     
 def jiggle():
     return random.randint(-5, 5), random.randint(-5, 5)
@@ -203,8 +200,9 @@ while running:
     screen.fill(WHITE)
     # Start the jiggle event
     elapsed_time = pygame.time.get_ticks() - start_time
-    if current_pokemon["legendary"]:
+    if current_pokemon["legendary"] and current_pokemon["get_this_one"]:
         add_special_message("Get this one!")
+        current_pokemon["get_this_one"] = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -256,6 +254,8 @@ while running:
             spawn_pokemon()
         elif event.type == MESSAGE_CLEAR_EVENT:
             messages.clear()
+        elif event.type == SPECIAL_MESSAGE_CLEAR_EVENT:
+            special_message["text"]=""
         elif event.type == LAST_CORRECT_LETTER_EVENT:
             last_correct_letter_time = 0
         elif event.type == JIGGLE_EVENT:
