@@ -147,11 +147,11 @@ class GameSession:
         self.combo_count += 1
 
         # Calculate score
-        combo_reward = self.get_combo_reward(self.combo_count)
-        speed_multiplier = self.get_speed_multiplier(elapsed_time, self.current_pokemon.time_limit)
-        score = combo_reward * speed_multiplier
+        base_score = self.get_combo_reward(self.combo_count)
         if self.current_pokemon.legendary:
-            score *= 10
+            base_score = 10000
+        speed_multiplier = self.get_speed_multiplier(elapsed_time, self.current_pokemon.time_limit)
+        score = base_score * speed_multiplier
         self.total_score += score
 
         # Add to caught Pokémon list
@@ -164,11 +164,11 @@ class GameSession:
             legendary = ""
         self.add_message(f"{legendary}{self.current_pokemon.name} caught!")
         if speed_multiplier == 1.5:
-            self.add_message("Super Fast! x1.5")
+            self.add_message(f"Super Fast! {round(base_score)} x 1.5")
         elif speed_multiplier == 1.2:
-            self.add_message("Fast! x1.2")
+            self.add_message(f"Fast! {round(base_score)} x 1.2")
         if self.combo_count > 3:
-            self.add_message(f"Combo {self.combo_count}! {round(score)}")
+            self.add_message(f"Combo {self.combo_count}!")
 
         self.current_pokemon.name_sound.play()
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, 1000, True)
@@ -218,25 +218,26 @@ class GameSession:
         
             # Apply jiggle offset
             jiggle_x, jiggle_y = self.jiggle_offset
+            walk_x, walk_y = self.current_pokemon.walk_offset
 
             # Draw the Pokemon Background
             screen.blit(self.current_pokemon.bg, (450, 250))
 
             # Draw the Pokemon sprite
-            screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + jiggle_x, 100 + jiggle_y))
+            screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x, 100 + walk_y + jiggle_y))
 
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             if elapsed_time > 3000 or len(self.typed_name) > 0:
                 #self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
-                self.draw_text(screen, self.current_pokemon.name, font, RED, name_x , 240 )
+                self.draw_text(screen, self.current_pokemon.name, font, RED, name_x + walk_x, 240)
                 # Draw the timer bar just below the typed name
-                self.draw_timer_bar(screen, name_x , 260 , font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
+                self.draw_timer_bar(screen, name_x + walk_x, 260, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name):
                 char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-                self.draw_text(screen, char, font, BLACK, char_x, 240)
+                self.draw_text(screen, char, font, BLACK, char_x + walk_x, 240)
         else:
             screen.fill(WHITE)
 

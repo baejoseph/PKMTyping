@@ -40,6 +40,7 @@ clock = pygame.time.Clock()
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
+WALK_EVENT = pygame.USEREVENT + 3
 JIGGLE_EVENT = pygame.USEREVENT + 4
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
 
@@ -49,6 +50,7 @@ game_session.spawn_pokemon()
 
 running = True
 pygame.time.set_timer(JIGGLE_EVENT, 110)
+pygame.time.set_timer(WALK_EVENT, 200)
 
 while running:
     screen.fill(WHITE)
@@ -80,8 +82,10 @@ while running:
             game_session.messages.clear()
         elif event.type == SPECIAL_MESSAGE_CLEAR_EVENT:
             game_session.special_message["text"] = ""
-        elif event.type == JIGGLE_EVENT:
+        elif game_session.current_pokemon and event.type == JIGGLE_EVENT:
             game_session.jiggle_offset = game_session.jiggle()
+        elif game_session.current_pokemon and event.type == WALK_EVENT:
+            game_session.current_pokemon.walk()
 
     # Miss Pokemon due to running out of time
     if game_session.current_pokemon and (elapsed_time > game_session.current_pokemon.time_limit):

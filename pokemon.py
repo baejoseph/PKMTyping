@@ -1,8 +1,9 @@
 import pygame
+import random
 import os
 
 LEGENDARY_CUTOFF = 250
-NORMAL_POKEMON_CATCH_TIME = 10000
+NORMAL_POKEMON_CATCH_TIME = 9000
 LEGENDARY_POKEMON_CATCH_TIME = 4000
 # Screen dimensions
 SCREEN_WIDTH = 800
@@ -29,6 +30,7 @@ class Pokemon:
         self.legendary = self.is_legendary(data["base"])
         self.time_limit = self.get_time_limit(data["base"])
         self.get_this_one = True
+        self.walk_offset = [0,0]
 
     def load_image(self):
         return pygame.image.load(os.path.join('assets/sprites', f"{self.id}.png"))
@@ -61,3 +63,7 @@ class Pokemon:
 
     def get_time_limit(self, base_stats):
         return LEGENDARY_POKEMON_CATCH_TIME if self.is_legendary(base_stats) else NORMAL_POKEMON_CATCH_TIME
+
+    def walk(self):
+        self.walk_offset[0] += random.randint(-5, 5)
+        self.walk_offset[1] += random.randint(-5, 5)
