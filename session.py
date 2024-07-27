@@ -111,7 +111,7 @@ class GameSession:
         self.total_score += score
 
         # Add to caught Pokémon list
-        self.caught_pokemons.append((self.current_pokemon.icon, self.current_pokemon.legendary))
+        self.caught_pokemons.append((self.current_pokemon.icon, self.current_pokemon.legendary, speed_multiplier == 1.5))
 
         # Add messages
         if self.current_pokemon.legendary:
@@ -184,16 +184,20 @@ class GameSession:
         x_start = 20
         y_start = SCREEN_HEIGHT - (rows * (icon_size + padding)) - 20
 
-        for index, (icon, legendary) in enumerate(self.caught_pokemons):
+        for index, (icon, legendary, fast) in enumerate(self.caught_pokemons):
             col = index % cols
             row = index // cols
             x = x_start + col * (icon_size + padding)
             y = y_start + row * (icon_size + padding)
     
             screen.blit(icon, (x, y))
-            # Draw legendary outline
+            # Draw Legendary outline
             if legendary:
+                pygame.draw.circle(screen, BLACK, (x + icon_size // 2 + 2, y + icon_size // 2), icon_size // 2 + 2, 2)
+            # Draw Super Fast outline
+            if fast:
                 pygame.draw.circle(screen, RED, (x + icon_size // 2 + 2, y + icon_size // 2), icon_size // 2 + 3, 2)
+
 
         # Include the current combo if it exists and is of length 3 or more
         combo_indices = self.combo_indices.copy()
