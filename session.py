@@ -85,27 +85,28 @@ class GameSession:
             1: 100,
             2: 150,
             3: 200,
-            4: 300,
-            5: 400,
-            6: 500,
-            7: 700,
-            8: 900,
-            9: 1000,
-            10: 1200,
-            11: 2000,
-            12: 3000,
-            13: 4000,
-            14: 5000,
-            15: 6000,
-            16: 7000,
-            17: 8000,
-            18: 9000,
-            19: 10000,
+            4: 250,
+            5: 300,
+            6: 400,
+            7: 500,
+            8: 600,
+            9: 800,
+            10: 1000,
+            11: 1200,
+            12: 1400,
+            13: 1600,
+            14: 1800,
+            15: 2000,
+            16: 2200,
+            17: 2400,
+            18: 2600,
+            19: 2800,
+            20: 3000,
         }
         pygame.mixer.music.play()
 
     def get_combo_reward(self, combo_count):
-        return self.reward_map.get(combo_count, 10000)
+        return self.reward_map.get(combo_count, 500*(combo_count-14))
 
     def get_speed_multiplier(self, elapsed_time, time_limit):
         percentage = elapsed_time / time_limit
@@ -227,15 +228,15 @@ class GameSession:
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             if elapsed_time > 3000 or len(self.typed_name) > 0:
-                self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
-                self.draw_text(screen, self.current_pokemon.name, font, RED, name_x + jiggle_x, 240 + jiggle_y)
+                #self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
+                self.draw_text(screen, self.current_pokemon.name, font, RED, name_x , 240 )
                 # Draw the timer bar just below the typed name
-                self.draw_timer_bar(screen, name_x + jiggle_x, 220 + jiggle_y, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
+                self.draw_timer_bar(screen, name_x , 260 , font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name):
                 char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-                self.draw_text(screen, char, font, BLACK, char_x + jiggle_x, 240 + jiggle_y)
+                self.draw_text(screen, char, font, BLACK, char_x, 240)
         else:
             screen.fill(WHITE)
 
