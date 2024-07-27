@@ -15,6 +15,7 @@ class Pokemon:
         self.id = data["id"]
         self.name = data["name"]["english"].upper()
         self.sprite = self.load_image()
+        self.icon = self.load_icon()
         self.bg = self.load_bg_image()
         self.cry = self.load_sound()
         self.name_sound = Pokemon.name_sounds.get(self.id, None)
@@ -24,6 +25,9 @@ class Pokemon:
 
     def load_image(self):
         return pygame.image.load(os.path.join('assets/sprites', f"{self.id}.png"))
+
+    def load_icon(self):
+        return pygame.image.load(os.path.join('assets/icons', f"{self.id}.png"))
 
     def load_bg_image(self, target_size=(400, 300), gray_alpha=0.4):
         original_image = pygame.image.load(os.path.join('assets/sugimori', f"{self.id}.png")).convert_alpha()
