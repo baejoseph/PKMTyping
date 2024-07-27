@@ -12,8 +12,13 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 AMBER = (255, 191, 0)
 RED = (255, 0, 0)
+GRAY = (120,120,120)
 COMBOCOLOR1 = (255, 165, 0)
 COMBOCOLOR2 = (255, 69, 0)
+
+# Pause menu options
+pause_options = ["Resume", "Restart"]
+selected_option = 0
 
 pkbimg = pygame.image.load("assets/items/poke-ball.png")
 scoreimg = pygame.image.load("assets/items/sapphire.png")
@@ -58,6 +63,10 @@ def draw_gradient_rect(surface, rect, color1, color2, radius=15):
 
 class GameSession:
     def __init__(self, pokemon_data):
+        self.reset_game(pokemon_data)
+
+    def reset_game(self, pokemon_data):
+        self.game_paused = False
         self.pokemon_data = pokemon_data
         self.caught_pokemon_count = 0
         self.combo_count = 0
@@ -171,6 +180,37 @@ class GameSession:
         self.miss_sound.play()
         self.current_pokemon = None
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, wait_time_ms, True)
+
+    def draw_pause_menu(self,screen, font):
+        global selected_option
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.fill(GRAY)
+        overlay.set_alpha(150)  # Set transparency to 150
+        screen.blit(overlay, (0, 0))
+
+        # Draw pause menu options
+        menu_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 200, 100)
+        pygame.draw.rect(screen, WHITE, menu_rect, border_radius=15)
+        pygame.draw.rect(screen, BLACK, menu_rect, 2, border_radius=15)
+
+        for i, option in enumerate(pause_options):
+            color = GREEN if i == selected_option else BLACK
+            self.draw_text(screen, option, font, color, menu_rect.x + 50, menu_rect.y + 20 + i * 30)
+
+    def handle_pause_menu_input(self,event):
+        global selected_option
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                selected_option = (selected_option - 1) % len(pause_options)
+            elif event.key == pygame.K_DOWN:
+                selected_option = (selected_option + 1) % len(pause_options)
+            elif event.key == pygame.K_RETURN:
+                if pause_options[selected_option] == "Resume":
+                    self.game_paused = False
+                    pygame.mixer.music.unpause()
+                elif pause_options[selected_option] == "Restart":
+                    self.reset_game(self.pokemon_data)
+                    self.spawn_pokemon()
 
     def draw_game_elements(self, screen, font, elapsed_time):
         if self.current_pokemon:

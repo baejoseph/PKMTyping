@@ -18,6 +18,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 AMBER = (255, 191, 0)
 RED = (255, 0, 0)
+GRAY = (120,120,120)
 
 # Load JSON data
 with open("pokemon_data_updated.json", "r", encoding="utf-8") as file:
@@ -60,6 +61,10 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            game_session.game_paused = not game_session.game_paused
+        elif game_session.game_paused:
+            game_session.handle_pause_menu_input(event)
         elif game_session.current_pokemon and event.type == pygame.KEYDOWN:
             game_session.typed_name += event.unicode.upper()
 
@@ -78,16 +83,19 @@ while running:
         elif event.type == JIGGLE_EVENT:
             game_session.jiggle_offset = game_session.jiggle()
 
-    # Update game state
+    # Miss Pokemon due to running out of time
     if game_session.current_pokemon and (elapsed_time > game_session.current_pokemon.time_limit):
         game_session.pokemon_missed(10)
 
-    # Draw game elements
-    game_session.draw_game_elements(screen, font, elapsed_time)
-
-    # Display messages
-    game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
-    game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
+    # Draw game pause elements
+    if game_session.game_paused:
+        pygame.mixer.music.pause()
+        game_session.draw_pause_menu(screen, font)
+    else:
+        # Display messages
+        game_session.draw_game_elements(screen, font, elapsed_time)
+        game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
+        game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
 
     pygame.display.flip()
     clock.tick(60)
