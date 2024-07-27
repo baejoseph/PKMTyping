@@ -37,6 +37,8 @@ class GameSession:
         self.messages = []
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
         self.jiggle_offset = [0, 0]
+        self.caught_pokemons = []
+        self.combo_indices = []
         self.reward_map = {
             1: 100,
             2: 150,
@@ -108,6 +110,9 @@ class GameSession:
             score *= 10
         self.total_score += score
 
+        # Add to caught Pokémon list
+        self.caught_pokemons.append((self.current_pokemon.icon, self.current_pokemon.legendary))
+
         # Add messages
         if self.current_pokemon.legendary:
             legendary = "LEGENDARY "
@@ -126,6 +131,8 @@ class GameSession:
 
     def pokemon_missed(self, wait_time_ms):
         self.add_message("Missed!")
+        if self.combo_count >= 3:
+            self.combo_indices.append((len(self.caught_pokemons) - self.combo_count, len(self.caught_pokemons)))
         self.combo_count = 0
         self.miss_sound.play()
         self.current_pokemon = None
@@ -166,6 +173,48 @@ class GameSession:
         screen.blit(scoreimg, (20, 100))
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
 
+        # Draw the caught Pokémon icons
+        self.draw_caught_pokemon_icons(screen)
+
+    def draw_caught_pokemon_icons(self, screen):
+        cols = 10
+        rows = 5
+        icon_size = 32
+        padding = 5
+        x_start = 20
+        y_start = SCREEN_HEIGHT - (rows * (icon_size + padding)) - 20
+
+        for index, (icon, legendary) in enumerate(self.caught_pokemons):
+            col = index % cols
+            row = index // cols
+            x = x_start + col * (icon_size + padding)
+            y = y_start + row * (icon_size + padding)
+    
+            screen.blit(icon, (x, y))
+            # Draw legendary outline
+            if legendary:
+                pygame.draw.circle(screen, RED, (x + icon_size // 2 + 2, y + icon_size // 2), icon_size // 2 + 3, 2)
+
+        # Include the current combo if it exists and is of length 3 or more
+        combo_indices = self.combo_indices.copy()
+        if self.combo_count >= 3:
+            combo_indices.append((len(self.caught_pokemons) - self.combo_count, len(self.caught_pokemons)))
+
+        # Draw combo outlines for all combos of length 3 or more
+        for start_index, end_index in combo_indices:
+            start_col = start_index % cols
+            start_row = start_index // cols
+            end_col = (end_index - 1) % cols
+            end_row = (end_index - 1) // cols
+
+            for row in range(start_row, end_row + 1):
+                row_start_col = start_col if row == start_row else 0
+                row_end_col = end_col if row == end_row else cols - 1
+                x1 = x_start + row_start_col * (icon_size + padding) - 2
+                x2 = x_start + row_end_col * (icon_size + padding) + icon_size + 2
+                y = y_start + row * (icon_size + padding) - 2
+                pygame.draw.rect(screen, GREEN, (x1, y, x2 - x1, icon_size + 4), 2, border_radius=15)
+        
     @staticmethod
     def draw_text(surface, text, font, color, x, y):
         text_obj = font.render(text, True, color)
