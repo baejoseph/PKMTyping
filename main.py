@@ -21,7 +21,7 @@ RED = (255, 0, 0)
 GRAY = (120,120,120)
 
 # Load JSON data
-with open("pokemon_data_updated.json", "r", encoding="utf-8") as file:
+with open("data/pokemon_data_updated.json", "r", encoding="utf-8") as file:
     pokemon_data = json.load(file)
 
 # Load all name sounds into memory
