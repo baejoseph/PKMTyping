@@ -39,7 +39,6 @@ clock = pygame.time.Clock()
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
-LAST_CORRECT_LETTER_EVENT = pygame.USEREVENT + 3
 JIGGLE_EVENT = pygame.USEREVENT + 4
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
 
@@ -70,17 +69,12 @@ while running:
             else:
                 game_session.pokemon_missed(1500)
 
-                game_session.last_correct_letter_time = pygame.time.get_ticks()
-                pygame.time.set_timer(LAST_CORRECT_LETTER_EVENT, 500, True)
-
         elif event.type == SPAWN_POKEMON_EVENT:
             game_session.spawn_pokemon()
         elif event.type == MESSAGE_CLEAR_EVENT:
             game_session.messages.clear()
         elif event.type == SPECIAL_MESSAGE_CLEAR_EVENT:
             game_session.special_message["text"] = ""
-        elif event.type == LAST_CORRECT_LETTER_EVENT:
-            game_session.last_correct_letter_time = 0
         elif event.type == JIGGLE_EVENT:
             game_session.jiggle_offset = game_session.jiggle()
 

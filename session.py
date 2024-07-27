@@ -20,7 +20,6 @@ comboimg = pygame.image.load("assets/items/shiny-stone.png")
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
-LAST_CORRECT_LETTER_EVENT = pygame.USEREVENT + 3
 JIGGLE_EVENT = pygame.USEREVENT + 4
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
 
@@ -37,7 +36,6 @@ class GameSession:
         self.miss_sound = pygame.mixer.Sound('assets/sounds/daijoubu.ogg')
         self.messages = []
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
-        self.last_correct_letter_time = 0
         self.jiggle_offset = [0, 0]
         self.reward_map = {
             1: 100,
