@@ -48,10 +48,19 @@ class GameSession:
             8: 900,
             9: 1000,
             10: 1200,
+            11: 2000,
+            12: 3000,
+            13: 4000,
+            14: 5000,
+            15: 6000,
+            16: 7000,
+            17: 8000,
+            18: 9000,
+            19: 10000,
         }
 
     def get_combo_reward(self, combo_count):
-        return self.reward_map.get(combo_count, 1200)
+        return self.reward_map.get(combo_count, 10000)
 
     def get_speed_multiplier(self, elapsed_time, time_limit):
         percentage = elapsed_time / time_limit
