@@ -1,6 +1,13 @@
 import pygame
 import os
 
+LEGENDARY_CUTOFF = 250
+NORMAL_POKEMON_CATCH_TIME = 10000
+LEGENDARY_POKEMON_CATCH_TIME = 4000
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
 class Pokemon:
     name_sounds = {}
 
@@ -29,7 +36,7 @@ class Pokemon:
     def load_icon(self):
         return pygame.image.load(os.path.join('assets/icons', f"{self.id}.png"))
 
-    def load_bg_image(self, target_size=(400, 300), gray_alpha=0.4):
+    def load_bg_image(self, target_size=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), gray_alpha=0.4):
         original_image = pygame.image.load(os.path.join('assets/sugimori', f"{self.id}.png")).convert_alpha()
         orig_width, orig_height = original_image.get_size()
         aspect_ratio = orig_width / orig_height
@@ -50,7 +57,7 @@ class Pokemon:
         return pygame.mixer.Sound(os.path.join('assets/cries', f"{self.id}.ogg"))
 
     def is_legendary(self, base_stats):
-        return base_stats["HP"] + base_stats["Attack"] + base_stats["Sp. Attack"] > 250
+        return base_stats["HP"] + base_stats["Attack"] + base_stats["Sp. Attack"] > LEGENDARY_CUTOFF
 
     def get_time_limit(self, base_stats):
-        return 7000 if self.is_legendary(base_stats) else 10000
+        return LEGENDARY_POKEMON_CATCH_TIME if self.is_legendary(base_stats) else NORMAL_POKEMON_CATCH_TIME
