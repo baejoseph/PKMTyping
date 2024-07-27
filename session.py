@@ -119,30 +119,35 @@ class GameSession:
         self.add_message("Missed!")
         self.combo_count = 0
         self.miss_sound.play()
+        self.current_pokemon = None
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, wait_time_ms, True)
 
     def draw_game_elements(self, screen, font, elapsed_time):
-        # Apply jiggle offset
-        jiggle_x, jiggle_y = self.jiggle_offset
+        if self.current_pokemon:
+        
+            # Apply jiggle offset
+            jiggle_x, jiggle_y = self.jiggle_offset
 
-        # Draw the Pokemon Background
-        screen.blit(self.current_pokemon.bg, (450, 250))
+            # Draw the Pokemon Background
+            screen.blit(self.current_pokemon.bg, (450, 250))
 
-        # Draw the Pokemon sprite
-        screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + jiggle_x, 100 + jiggle_y))
+            # Draw the Pokemon sprite
+            screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + jiggle_x, 100 + jiggle_y))
 
-        # Draw the Pokemon name in full capital letters
-        name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
-        if elapsed_time > 3000 or len(self.typed_name) > 0:
-            self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
-            self.draw_text(screen, self.current_pokemon.name, font, RED, name_x + jiggle_x, 240 + jiggle_y)
-            # Draw the timer bar just below the typed name
-            self.draw_timer_bar(screen, name_x + jiggle_x, 220 + jiggle_y, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
+            # Draw the Pokemon name in full capital letters
+            name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
+            if elapsed_time > 3000 or len(self.typed_name) > 0:
+                self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
+                self.draw_text(screen, self.current_pokemon.name, font, RED, name_x + jiggle_x, 240 + jiggle_y)
+                # Draw the timer bar just below the typed name
+                self.draw_timer_bar(screen, name_x + jiggle_x, 220 + jiggle_y, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
 
-        # Draw each typed letter exactly below each corresponding letter of the Pokemon name
-        for i, char in enumerate(self.typed_name):
-            char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-            self.draw_text(screen, char, font, BLACK, char_x + jiggle_x, 240 + jiggle_y)
+            # Draw each typed letter exactly below each corresponding letter of the Pokemon name
+            for i, char in enumerate(self.typed_name):
+                char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
+                self.draw_text(screen, char, font, BLACK, char_x + jiggle_x, 240 + jiggle_y)
+        else:
+            screen.fill(WHITE)
 
         # Draw the score and combo count
         screen.blit(pkbimg, (20, 20))
