@@ -12,16 +12,46 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 AMBER = (255, 191, 0)
 RED = (255, 0, 0)
+COMBOCOLOR1 = (255, 165, 0)
+COMBOCOLOR2 = (255, 69, 0)
 
 pkbimg = pygame.image.load("assets/items/poke-ball.png")
 scoreimg = pygame.image.load("assets/items/sapphire.png")
 comboimg = pygame.image.load("assets/items/shiny-stone.png")
+masterball = pygame.transform.scale(pygame.image.load("assets/items/gen5/master-ball.png"), (25, 25))
+ultraball = pygame.transform.scale(pygame.image.load("assets/items/gen5/ultra-ball.png"), (25, 25))
 
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
 JIGGLE_EVENT = pygame.USEREVENT + 4
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
+
+def draw_gradient_rect(surface, rect, color1, color2, radius=15):
+    """Draw a vertical gradient rounded rectangle."""
+    gradient_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+    for y in range(rect.height):
+        ratio = y / rect.height
+        color = (
+            int(color1[0] * (1 - ratio) + color2[0] * ratio),
+            int(color1[1] * (1 - ratio) + color2[1] * ratio),
+            int(color1[2] * (1 - ratio) + color2[2] * ratio)
+        )
+        pygame.draw.line(gradient_surface, color, (0, y), (rect.width, y))
+
+    # Create a rounded mask
+    mask_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+    pygame.draw.rect(mask_surface, (255, 255, 255), mask_surface.get_rect(), border_radius=radius)
+    mask = pygame.mask.from_surface(mask_surface)
+
+    # Apply the mask to the gradient
+    rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+    for x in range(rect.width):
+        for y in range(rect.height):
+            if mask.get_at((x, y)):
+                rounded_surface.set_at((x, y), gradient_surface.get_at((x, y)))
+
+    surface.blit(rounded_surface, rect.topleft)
 
 class GameSession:
     def __init__(self, pokemon_data):
@@ -181,23 +211,9 @@ class GameSession:
         rows = 5
         icon_size = 32
         padding = 5
+        offset = 21
         x_start = 20
         y_start = SCREEN_HEIGHT - (rows * (icon_size + padding)) - 20
-
-        for index, (icon, legendary, fast) in enumerate(self.caught_pokemons):
-            col = index % cols
-            row = index // cols
-            x = x_start + col * (icon_size + padding)
-            y = y_start + row * (icon_size + padding)
-    
-            screen.blit(icon, (x, y))
-            # Draw Legendary outline
-            if legendary:
-                pygame.draw.circle(screen, BLACK, (x + icon_size // 2 + 2, y + icon_size // 2), icon_size // 2 + 2, 2)
-            # Draw Super Fast outline
-            if fast:
-                pygame.draw.circle(screen, RED, (x + icon_size // 2 + 2, y + icon_size // 2), icon_size // 2 + 3, 2)
-
 
         # Include the current combo if it exists and is of length 3 or more
         combo_indices = self.combo_indices.copy()
@@ -217,8 +233,27 @@ class GameSession:
                 x1 = x_start + row_start_col * (icon_size + padding) - 2
                 x2 = x_start + row_end_col * (icon_size + padding) + icon_size + 2
                 y = y_start + row * (icon_size + padding) - 2
-                pygame.draw.rect(screen, GREEN, (x1, y, x2 - x1, icon_size + 4), 2, border_radius=15)
-        
+                highlight_rect = pygame.Rect(x1, y, x2 - x1, icon_size + 4)
+                
+                # Draw gradient background
+                draw_gradient_rect(screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
+
+        for index, (icon, legendary, fast) in enumerate(self.caught_pokemons):
+            col = index % cols
+            row = index // cols
+            x = x_start + col * (icon_size + padding)
+            y = y_start + row * (icon_size + padding)
+    
+            screen.blit(icon, (x, y))
+            
+            # Draw Super Fast outline
+            if fast:
+                screen.blit(ultraball, (x+offset,y+offset))
+            # Draw Legendary outline
+            if legendary:
+                screen.blit(masterball, (x+offset,y+offset))
+
+
     @staticmethod
     def draw_text(surface, text, font, color, x, y):
         text_obj = font.render(text, True, color)
