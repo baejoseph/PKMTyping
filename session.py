@@ -21,6 +21,9 @@ comboimg = pygame.image.load("assets/items/shiny-stone.png")
 masterball = pygame.transform.scale(pygame.image.load("assets/items/gen5/master-ball.png"), (25, 25))
 ultraball = pygame.transform.scale(pygame.image.load("assets/items/gen5/ultra-ball.png"), (25, 25))
 
+pygame.mixer.init()
+pygame.mixer.music.load("assets/music/Forest.mp3")
+
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
@@ -90,6 +93,7 @@ class GameSession:
             18: 9000,
             19: 10000,
         }
+        pygame.mixer.music.play()
 
     def get_combo_reward(self, combo_count):
         return self.reward_map.get(combo_count, 10000)
