@@ -33,6 +33,7 @@ pygame.display.set_caption("Pokemon Typing Adventure")
 
 # Font
 font = pygame.font.Font(None, 36)
+large_font = pygame.font.Font(None, 54)
 
 # Clock
 clock = pygame.time.Clock()
@@ -97,7 +98,7 @@ while running:
         game_session.draw_pause_menu(screen, font)
     else:
         # Display messages
-        game_session.draw_game_elements(screen, font, elapsed_time)
+        game_session.draw_game_elements(screen, large_font, elapsed_time)
         game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
         game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
 

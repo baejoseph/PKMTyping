@@ -13,6 +13,7 @@ GREEN = (0, 255, 0)
 AMBER = (255, 191, 0)
 RED = (255, 0, 0)
 GRAY = (120,120,120)
+LIGHT_GRAY = (220,220,220)
 COMBOCOLOR1 = (255, 165, 0)
 COMBOCOLOR2 = (255, 69, 0)
 
@@ -25,6 +26,8 @@ scoreimg = pygame.image.load("assets/items/sapphire.png")
 comboimg = pygame.image.load("assets/items/shiny-stone.png")
 masterball = pygame.transform.scale(pygame.image.load("assets/items/gen5/master-ball.png"), (25, 25))
 ultraball = pygame.transform.scale(pygame.image.load("assets/items/gen5/ultra-ball.png"), (25, 25))
+greatball = pygame.transform.scale(pygame.image.load("assets/items/gen5/great-ball.png"), (25, 25))
+normalball = pygame.transform.scale(pygame.image.load("assets/items/gen5/poke-ball.png"), (25, 25))
 
 pygame.mixer.init()
 pygame.mixer.music.load("assets/music/Forest.mp3")
@@ -59,6 +62,14 @@ def draw_gradient_rect(surface, rect, color1, color2, radius=15):
             if mask.get_at((x, y)):
                 rounded_surface.set_at((x, y), gradient_surface.get_at((x, y)))
 
+    surface.blit(rounded_surface, rect.topleft)
+
+def draw_rounded_rect(surface, rect, color, radius=15, outline_color=None, outline_width=2):
+    """Draw a rounded rectangle with optional outline."""
+    rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+    pygame.draw.rect(rounded_surface, color, rounded_surface.get_rect(), border_radius=radius)
+    if outline_color:
+        pygame.draw.rect(rounded_surface, outline_color, rounded_surface.get_rect(), outline_width, border_radius=radius)
     surface.blit(rounded_surface, rect.topleft)
 
 class GameSession:
@@ -155,7 +166,10 @@ class GameSession:
         self.total_score += score
 
         # Add to caught Pokémon list
-        self.caught_pokemons.append((self.current_pokemon.icon, self.current_pokemon.legendary, speed_multiplier == 1.5))
+        self.caught_pokemons.append((self.current_pokemon.icon, 
+                                     self.current_pokemon.legendary,
+                                     speed_multiplier == 1.2, 
+                                     speed_multiplier == 1.5))
 
         # Add messages
         if self.current_pokemon.legendary:
@@ -226,13 +240,22 @@ class GameSession:
             # Draw the Pokemon sprite
             screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x, 100 + walk_y + jiggle_y))
 
+            # Draw the rounded rectangle around the Pokémon name and timer bar
+            name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
+            name_width = font.size(self.current_pokemon.name)[0]
+            rect_width = name_width + 20  # Add some padding
+            rect_height = 80  # Enough height to cover the name and timer bar
+            rect_x = name_x - 10 + walk_x
+            rect_y = 220
+            draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), LIGHT_GRAY, radius=15, outline_color=BLACK)
+
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             if elapsed_time > 3000 or len(self.typed_name) > 0:
                 #self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
                 self.draw_text(screen, self.current_pokemon.name, font, RED, name_x + walk_x, 240)
                 # Draw the timer bar just below the typed name
-                self.draw_timer_bar(screen, name_x + walk_x, 260, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
+                self.draw_timer_bar(screen, name_x + walk_x, 280, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name):
@@ -284,7 +307,7 @@ class GameSession:
                 # Draw gradient background
                 draw_gradient_rect(screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
 
-        for index, (icon, legendary, fast) in enumerate(self.caught_pokemons):
+        for index, (icon, legendary, fast, superfast) in enumerate(self.caught_pokemons):
             col = index % cols
             row = index // cols
             x = x_start + col * (icon_size + padding)
@@ -292,12 +315,17 @@ class GameSession:
     
             screen.blit(icon, (x, y))
             
-            # Draw Super Fast outline
-            if fast:
-                screen.blit(ultraball, (x+offset,y+offset))
             # Draw Legendary outline
             if legendary:
                 screen.blit(masterball, (x+offset,y+offset))
+                        # Draw Super Fast outline
+            elif superfast:
+                screen.blit(ultraball, (x+offset,y+offset))
+            elif fast:
+                screen.blit(greatball, (x+offset,y+offset))
+            else:
+                screen.blit(normalball, (x+offset,y+offset))
+
 
 
     @staticmethod
@@ -308,7 +336,7 @@ class GameSession:
     @staticmethod
     def draw_timer_bar(surface, x, y, width, height, elapsed_time, time_limit):
         fill_width = (elapsed_time / time_limit) * width
-        color = GREEN if fill_width < width * 0.5 else AMBER if fill_width < width * 0.75 else RED
+        color = GREEN if fill_width < width * 0.55 else AMBER if fill_width < width * 0.80 else RED
         pygame.draw.rect(surface, color, (x, y, fill_width, height))
 
     @staticmethod
