@@ -23,7 +23,7 @@ pygame.display.set_caption("Pokemon Typing Adventure")
 
 # Font
 font = pygame.font.Font(None, 36)
-large_font = pygame.font.Font(None, 92)
+large_font = pygame.font.Font("font/MS PGothic.ttf", 92)
 mini_font = pygame.font.Font(None, 24)
 
 # Clock

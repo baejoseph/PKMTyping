@@ -211,8 +211,9 @@ class GameSession:
             # Draw the rounded rectangle around the Pokémon name and timer bar
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             name_width = font.size(self.current_pokemon.name)[0]
+            name_height = font.size(self.current_pokemon.name)[1]
             rect_width = name_width + 20  # Add some padding
-            rect_height = 110  # Enough height to cover the name and timer bar
+            rect_height = name_height + 60  # Enough height to cover the name and timer bar
             rect_x = name_x - 10 + walk_x
             rect_y = 220
             draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), LIGHT_GRAY, radius=15, outline_color=BLACK)
@@ -221,8 +222,9 @@ class GameSession:
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             if elapsed_time > NOT_SHOW_NAME_TIME or len(self.typed_name) > 0:
                 self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + walk_x, 240)
+                
                 # Draw the timer bar just below the typed name
-                self.draw_timer_bar(screen, name_x + walk_x, 300, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
+                self.draw_timer_bar(screen, name_x + walk_x, rect_y + name_height + 20, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name):
