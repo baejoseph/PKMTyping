@@ -1,21 +1,7 @@
 import pygame
 import random
 from pokemon import Pokemon
-
-# Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-AMBER = (255, 191, 0)
-RED = (255, 0, 0)
-GRAY = (120,120,120)
-LIGHT_GRAY = (220,220,220)
-COMBOCOLOR1 = (255, 165, 0)
-COMBOCOLOR2 = (255, 69, 0)
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2
 
 # Pause menu options
 pause_options = ["Resume", "Restart"]
@@ -92,28 +78,7 @@ class GameSession:
         self.jiggle_offset = [0, 0]
         self.caught_pokemons = []
         self.combo_indices = []
-        self.reward_map = {
-            1: 100,
-            2: 150,
-            3: 200,
-            4: 250,
-            5: 300,
-            6: 400,
-            7: 500,
-            8: 600,
-            9: 800,
-            10: 1000,
-            11: 1200,
-            12: 1400,
-            13: 1600,
-            14: 1800,
-            15: 2000,
-            16: 2200,
-            17: 2400,
-            18: 2600,
-            19: 2800,
-            20: 3000,
-        }
+        self.reward_map = REWARD_MAP
         pygame.mixer.music.play()
 
     def get_combo_reward(self, combo_count):
@@ -276,6 +241,15 @@ class GameSession:
         self.draw_caught_pokemon_icons(screen)
 
     def draw_caught_pokemon_icons(self, screen):
+        # Draw the box around it
+        
+        rect_width = 400  # Add some padding
+        rect_height = 200  # Enough height to cover the name and timer bar
+        rect_x = 10
+        rect_y = 385
+        
+        draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
+               
         cols = 10
         rows = 5
         icon_size = 32

@@ -4,21 +4,10 @@ import random
 import os
 from pokemon import Pokemon
 from session import GameSession
+from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK
 
 # Initialize Pygame
 pygame.init()
-
-# Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-AMBER = (255, 191, 0)
-RED = (255, 0, 0)
-GRAY = (120,120,120)
 
 # Load JSON data
 with open("data/pokemon_data_updated.json", "r", encoding="utf-8") as file:
