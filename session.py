@@ -53,7 +53,11 @@ def draw_gradient_rect(surface, rect, color1, color2, radius=15):
 def draw_rounded_rect(surface, rect, color, radius=15, outline_color=None, outline_width=2):
     """Draw a rounded rectangle with optional outline."""
     rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    pygame.draw.rect(rounded_surface, color, rounded_surface.get_rect(), border_radius=radius)
+    
+    # Adjust the color to include 50% transparency
+    color_with_alpha = (*color, 128)  # Assuming color is (R, G, B)
+    
+    pygame.draw.rect(rounded_surface, color_with_alpha, rounded_surface.get_rect(), border_radius=radius)
     if outline_color:
         pygame.draw.rect(rounded_surface, outline_color, rounded_surface.get_rect(), outline_width, border_radius=radius)
     surface.blit(rounded_surface, rect.topleft)
@@ -192,7 +196,7 @@ class GameSession:
                     self.reset_game(self.pokemon_data)
                     self.spawn_pokemon()
 
-    def draw_game_elements(self, screen, font, elapsed_time):
+    def draw_game_elements(self, screen, font, elapsed_time, bg_image):
         if self.current_pokemon:
         
             # Apply jiggle offset
@@ -209,7 +213,7 @@ class GameSession:
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             name_width = font.size(self.current_pokemon.name)[0]
             rect_width = name_width + 20  # Add some padding
-            rect_height = 80  # Enough height to cover the name and timer bar
+            rect_height = 110  # Enough height to cover the name and timer bar
             rect_x = name_x - 10 + walk_x
             rect_y = 220
             draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), LIGHT_GRAY, radius=15, outline_color=BLACK)
@@ -217,25 +221,16 @@ class GameSession:
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             if elapsed_time > 3000 or len(self.typed_name) > 0:
-                #self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + jiggle_x, 200 + jiggle_y)
-                self.draw_text(screen, self.current_pokemon.name, font, RED, name_x + walk_x, 240)
+                self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + walk_x, 240)
                 # Draw the timer bar just below the typed name
-                self.draw_timer_bar(screen, name_x + walk_x, 280, font.size(self.current_pokemon.name)[0], 10, elapsed_time, self.current_pokemon.time_limit)
+                self.draw_timer_bar(screen, name_x + walk_x, 300, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name):
                 char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-                self.draw_text(screen, char, font, BLACK, char_x + walk_x, 240)
+                self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
         else:
-            screen.fill(WHITE)
-
-        # Draw the score and combo count
-        screen.blit(pkbimg, (20, 20))
-        self.draw_text(screen, f"Caught: {self.caught_pokemon_count}", font, BLACK, 50, 20)
-        screen.blit(comboimg, (20, 60))
-        self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, 60)
-        screen.blit(scoreimg, (20, 100))
-        self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
+            screen.blit(bg_image, (0, 0))
 
         # Draw the caught Pokémon icons
         self.draw_caught_pokemon_icons(screen)
@@ -300,8 +295,16 @@ class GameSession:
             else:
                 screen.blit(normalball, (x+offset,y+offset))
 
-
-
+    def draw_game_scores(self, screen, font):
+        # Draw the score and combo count
+        screen.blit(pkbimg, (20, 20))
+        self.draw_text(screen, f"Caught: {self.caught_pokemon_count}", font, BLACK, 50, 20)
+        screen.blit(comboimg, (20, 60))
+        self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, 60)
+        screen.blit(scoreimg, (20, 100))
+        self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
+    
+    
     @staticmethod
     def draw_text(surface, text, font, color, x, y):
         text_obj = font.render(text, True, color)

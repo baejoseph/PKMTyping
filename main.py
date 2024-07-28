@@ -13,6 +13,9 @@ pygame.init()
 with open("data/pokemon_data_updated.json", "r", encoding="utf-8") as file:
     pokemon_data = json.load(file)
 
+# Load Background Image
+bg_image = pygame.image.load("assets/background/Pallet_Town_anime.png")
+
 # Load all name sounds into memory
 Pokemon.load_name_sounds()
 
@@ -22,7 +25,7 @@ pygame.display.set_caption("Pokemon Typing Adventure")
 
 # Font
 font = pygame.font.Font(None, 36)
-large_font = pygame.font.Font(None, 54)
+large_font = pygame.font.Font(None, 92)
 
 # Clock
 clock = pygame.time.Clock()
@@ -43,7 +46,7 @@ pygame.time.set_timer(JIGGLE_EVENT, 110)
 pygame.time.set_timer(WALK_EVENT, 200)
 
 while running:
-    screen.fill(WHITE)
+    screen.blit(bg_image, (0, 0))
     elapsed_time = pygame.time.get_ticks() - game_session.start_time
 
     if game_session.current_pokemon and game_session.current_pokemon.legendary and game_session.current_pokemon.get_this_one:
@@ -87,7 +90,8 @@ while running:
         game_session.draw_pause_menu(screen, font)
     else:
         # Display messages
-        game_session.draw_game_elements(screen, large_font, elapsed_time)
+        game_session.draw_game_elements(screen, large_font, elapsed_time, bg_image)
+        game_session.draw_game_scores(screen, font)
         game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
         game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
 
