@@ -23,6 +23,7 @@ class Pokemon:
         self.name_sound = Pokemon.name_sounds.get(self.id, None)
         self.legendary = self.is_legendary(data["base"])
         self.time_limit = self.get_time_limit(data["base"])
+        self.start_time = pygame.time.get_ticks()
         self.get_this_one = True
         self.walk_offset = [0,0]
 

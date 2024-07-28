@@ -1,7 +1,7 @@
 import pygame
 import random
 from pokemon import Pokemon
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2
 
 # Pause menu options
 pause_options = ["Resume", "Restart"]
@@ -74,7 +74,7 @@ class GameSession:
         self.total_score = 0
         self.current_pokemon = None
         self.typed_name = ""
-        self.start_time = None
+        self.start_time = pygame.time.get_ticks()
         self.caught_sound = pygame.mixer.Sound('assets/sounds/paafekuto.ogg')
         self.miss_sound = pygame.mixer.Sound('assets/sounds/daijoubu.ogg')
         self.messages = []
@@ -119,7 +119,6 @@ class GameSession:
         pokemon_data_choice = random.choice(self.pokemon_data[:151])
         self.current_pokemon = Pokemon(pokemon_data_choice)
         self.typed_name = ""
-        self.start_time = pygame.time.get_ticks()
         self.current_pokemon.cry.play()
 
     def pokemon_caught(self, elapsed_time):
@@ -220,7 +219,7 @@ class GameSession:
 
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
-            if elapsed_time > 3000 or len(self.typed_name) > 0:
+            if elapsed_time > NOT_SHOW_NAME_TIME or len(self.typed_name) > 0:
                 self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + walk_x, 240)
                 # Draw the timer bar just below the typed name
                 self.draw_timer_bar(screen, name_x + walk_x, 300, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
