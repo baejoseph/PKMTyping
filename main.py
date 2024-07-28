@@ -1,7 +1,5 @@
 import pygame
 import json
-import random
-import os
 from pokemon import Pokemon
 from session import GameSession
 from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK

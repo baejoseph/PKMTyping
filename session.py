@@ -314,7 +314,16 @@ class GameSession:
     def draw_timer_bar(surface, x, y, width, height, elapsed_time, time_limit):
         fill_width = (elapsed_time / time_limit) * width
         color = GREEN if fill_width < width * 0.55 else AMBER if fill_width < width * 0.80 else RED
-        pygame.draw.rect(surface, color, (x, y, fill_width, height))
+        
+        # Draw the white rounded rectangle as the background
+        rounded_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        pygame.draw.rect(rounded_surface, (255, 255, 255, 255), rounded_surface.get_rect(), border_radius=height // 2)
+        surface.blit(rounded_surface, (x, y))
+        
+        # Draw the colored filled bar on top of the white background
+        filled_rect = pygame.Surface((fill_width, height), pygame.SRCALPHA)
+        pygame.draw.rect(filled_rect, color, filled_rect.get_rect(), border_radius=height // 2)
+        surface.blit(filled_rect, (x, y))
 
     @staticmethod
     def jiggle():
