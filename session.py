@@ -200,7 +200,7 @@ class GameSession:
             walk_x, walk_y = self.current_pokemon.walk_offset
 
             # Draw the Pokemon Background
-            screen.blit(self.current_pokemon.bg, (450, 250))
+            screen.blit(self.current_pokemon.bg, (SCREEN_WIDTH - SCREEN_HEIGHT//2 - 50, SCREEN_HEIGHT// 2 -50))
 
             # Draw the Pokemon sprite
             screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x, 100 + walk_y + jiggle_y))
@@ -246,7 +246,7 @@ class GameSession:
         rect_width = 400  # Add some padding
         rect_height = 200  # Enough height to cover the name and timer bar
         rect_x = 10
-        rect_y = 385
+        rect_y = SCREEN_HEIGHT - 215  # 385 when 800 by 600 600 - 385 = 215
         
         draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
                
