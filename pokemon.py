@@ -16,6 +16,8 @@ class Pokemon:
     def __init__(self, data):
         self.id = data["id"]
         self.name = data["name"]["english"].upper()
+        self.japanese_name = data["name"]["japanese"]
+        self.korean_name = data["name"]["korean"]
         self.sprite = self.load_image()
         self.icon = self.load_icon()
         self.bg = self.load_bg_image()
@@ -48,6 +50,20 @@ class Pokemon:
         gray_surface.fill((128, 128, 128, int(255 * gray_alpha)))
         final_image = scaled_image.copy()
         final_image.blit(gray_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        
+        # Render the Korean and Japanese name
+        japanese_font = pygame.font.Font("font/MS PGothic.ttf", 72)  # Adjust the font size as needed
+        korean_font = pygame.font.Font("font/UnGungseo.ttf", 72)  # Adjust the font size as needed
+        
+        japanese_surface = japanese_font.render(self.japanese_name, True, (244, 244, 244))  # Stylize the text as needed (e.g., color)
+        korean_surface = korean_font.render(self.korean_name, True, (244, 244, 244))  # Stylize the text as needed (e.g., color)
+        
+        # Position the text at the bottom-right corner, justified to the right edge
+        japanese_rect = japanese_surface.get_rect(bottomright=(new_width - 10, new_height - 10))  # 10-pixel padding from edges
+        final_image.blit(japanese_surface, japanese_rect.topleft)
+        korean_rect = korean_surface.get_rect(bottomright=(new_width - 10, japanese_rect.top - 10))  # 10-pixel padding from edges
+        final_image.blit(korean_surface, korean_rect.topleft)
+        
         return final_image
 
     def load_sound(self):
