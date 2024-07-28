@@ -24,6 +24,7 @@ pygame.display.set_caption("Pokemon Typing Adventure")
 # Font
 font = pygame.font.Font(None, 36)
 large_font = pygame.font.Font(None, 92)
+mini_font = pygame.font.Font(None, 24)
 
 # Clock
 clock = pygame.time.Clock()
@@ -95,6 +96,11 @@ while running:
         game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
         game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
 
+    # Draw the copyright line
+    copyright_text = "Copyright 2024 Joseph Bae, made for my children with love"
+    text_surface = mini_font.render(copyright_text, True, WHITE)
+    screen.blit(text_surface, (SCREEN_WIDTH - text_surface.get_width() - 30, SCREEN_HEIGHT - 30))
+    
     pygame.display.flip()
     clock.tick(60)
 
