@@ -4,3 +4,5 @@ __pycache__/
 build/
 *.dmg
 stats.py
+icon.iconset/
+icon.icns

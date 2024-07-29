@@ -16,7 +16,7 @@ Pokemon.load_name_sounds()
 
 # Setup screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Pokemon Typing Adventure")
+pygame.display.set_caption("Poke Typing")
 
 # Font
 font = pygame.font.Font("font/Microsoft Sans Serif.ttf", 30)
