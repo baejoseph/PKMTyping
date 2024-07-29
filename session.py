@@ -100,11 +100,11 @@ class GameSession:
         pygame.mixer.music.unload()
         pygame.mixer.music.load(f"assets/music/{GENS[new_generation]['music']}")
         if new_generation > self.current_generation:
-            self.add_message(f"Excellent! {GENS[self.current_generation]['name']} unlocked!")
+            self.add_message(f"Excellent! {GENS[new_generation]['name']} unlocked!", 5000)
         if new_generation == self.current_generation:
-            self.add_message(f"Nearly! Stay in {GENS[self.current_generation]['name']}.")
+            self.add_message(f"Stay in {GENS[self.current_generation]['name']}.", 5000)
         if new_generation < self.current_generation:
-            self.add_message(f"Nearly! Stay in {GENS[self.current_generation]['name']}.")
+            self.add_message(f"Move back to in {GENS[new_generation]['name']}.", 5000)
         pygame.mixer.music.play()
         self.current_generation = new_generation
 
@@ -135,17 +135,17 @@ class GameSession:
             if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 4* MAX_MISTAKE):
                 self.change_generation(max(0, self.current_generation - 1))
             else:
-                self.change_generation(max(0, self.current_generation))
+                self.change_generation(self.current_generation)
             self.mistake_count = 0
 
-    def add_message(self, text):
+    def add_message(self, text, howlong=1000):
         self.messages.append({"text": text, "start_time": pygame.time.get_ticks()})
-        pygame.time.set_timer(MESSAGE_CLEAR_EVENT, 1000, True)
+        pygame.time.set_timer(MESSAGE_CLEAR_EVENT, howlong, True)
 
-    def add_special_message(self, text):
+    def add_special_message(self, text, howlong=1000):
         self.special_message["text"] = text
         self.special_message["start_time"] = pygame.time.get_ticks()
-        pygame.time.set_timer(SPECIAL_MESSAGE_CLEAR_EVENT, 1000, True)
+        pygame.time.set_timer(SPECIAL_MESSAGE_CLEAR_EVENT, howlong, True)
 
     def display_special_message(self, screen, font, color, width, height):
         current_time = pygame.time.get_ticks()
@@ -187,9 +187,11 @@ class GameSession:
             legendary = ""
         self.add_message(f"{legendary}{self.current_pokemon.name} caught!")
         if speed_multiplier == 1.5:
-            self.add_message(f"Super Fast! {round(base_score)} x 1.5")
+            self.add_special_message(f"{round(base_score)} x 1.5")
         elif speed_multiplier == 1.2:
-            self.add_message(f"Fast! {round(base_score)} x 1.2")
+            self.add_special_message(f"{round(base_score)} x 1.2")
+        else:
+            self.add_special_message(f"{round(base_score)}")
         if self.combo_count > 3:
             self.add_message(f"Combo {self.combo_count}!")
 
@@ -223,6 +225,8 @@ class GameSession:
         for i, option in enumerate(pause_options):
             color = GREEN if i == selected_option else BLACK
             self.draw_text(screen, option, font, color, menu_rect.x + 50, menu_rect.y + 20 + i * 30)
+            
+        self.draw_caught_pokemon_icons(screen)
 
     def pause_game(self, current_time):
         self.paused_time_start = current_time
