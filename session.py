@@ -16,7 +16,7 @@ greatball = pygame.transform.scale(pygame.image.load("assets/items/gen5/great-ba
 normalball = pygame.transform.scale(pygame.image.load("assets/items/gen5/poke-ball.png"), (25, 25))
 
 pygame.mixer.init()
-pygame.mixer.music.load("assets/music/Forest.mp3")
+pygame.mixer.music.load("assets/music/Pikachu.mp3")
 
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
@@ -242,7 +242,7 @@ class GameSession:
         rect_width = 400  # Add some padding
         rect_height = 200  # Enough height to cover the name and timer bar
         rect_x = 10
-        rect_y = SCREEN_HEIGHT - 215  # 385 when 800 by 600 600 - 385 = 215
+        rect_y = SCREEN_HEIGHT - 210 
         
         draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
                
@@ -272,7 +272,7 @@ class GameSession:
                 x1 = x_start + row_start_col * (icon_size + padding) - 2
                 x2 = x_start + row_end_col * (icon_size + padding) + icon_size + 2
                 y = y_start + row * (icon_size + padding) - 2
-                highlight_rect = pygame.Rect(x1, y, x2 - x1, icon_size + 4)
+                highlight_rect = pygame.Rect(x1, y + 2, x2 - x1, icon_size + 2)
                 
                 # Draw gradient background
                 draw_gradient_rect(screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
