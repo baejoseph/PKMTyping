@@ -13,11 +13,32 @@ LIGHT_GRAY = (220,220,220)
 COMBOCOLOR1 = (255, 165, 0)
 COMBOCOLOR2 = (255, 69, 0)
 
+# Pokemon Gens
+GENS = [
+    {"id": 1,
+  "name": "Kanto",
+  "indices": [0,151]},
+    {"id": 2,
+  "name": "Johto",
+  "indices": [151,251]},
+    {"id": 3,
+  "name": "Hoenn",
+  "indices": [251,386]},
+    {"id": 4,
+  "name": "Sinnoh",
+  "indices": [386,493]},
+    {"id": 5,
+  "name": "Unova",
+  "indices": [493,649]},
+    ]
+
 # Thresholds
 NOT_SHOW_NAME_TIME = 3000
 LEGENDARY_CUTOFF = 250
 NORMAL_POKEMON_CATCH_TIME = 9000
 LEGENDARY_POKEMON_CATCH_TIME = 4000
+PASS_MARK = 0.8
+MAX_MISTAKE = 2
 REWARD_MAP = {
             1: 100,
             2: 150,

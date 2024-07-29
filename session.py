@@ -1,7 +1,8 @@
+import numpy as np
 import pygame
 import random
 from pokemon import Pokemon
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE
 
 # Pause menu options
 pause_options = ["Resume", "Restart"]
@@ -10,6 +11,7 @@ selected_option = 0
 pkbimg = pygame.image.load("assets/items/poke-ball.png")
 scoreimg = pygame.image.load("assets/items/sapphire.png")
 comboimg = pygame.image.load("assets/items/shiny-stone.png")
+mistakeimg = pygame.image.load("assets/items/red-card.png")
 masterball = pygame.transform.scale(pygame.image.load("assets/items/gen5/master-ball.png"), (25, 25))
 ultraball = pygame.transform.scale(pygame.image.load("assets/items/gen5/ultra-ball.png"), (25, 25))
 greatball = pygame.transform.scale(pygame.image.load("assets/items/gen5/great-ball.png"), (25, 25))
@@ -87,6 +89,7 @@ class GameSession:
         self.caught_pokemons = []
         self.combo_indices = []
         self.reward_map = REWARD_MAP
+        self.current_generation = 0
         pygame.mixer.music.play()
 
     def update_time(self, time):
@@ -107,6 +110,15 @@ class GameSession:
         else:
             return 1.0
 
+    def check_progress(self):
+        if self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
+            legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons]).sum()
+            if (legend_or_fast / self.caught_pokemon_count > PASS_MARK) and (self.mistake_count < MAX_MISTAKE * self.caught_pokemon_count/10):
+                self.current_generation += 1
+                self.add_message(f"Excellent! {GENS[self.current_generation]['name']} unlocked!")
+            else:
+                self.add_message(f"Too slow! Stay in {GENS[self.current_generation]['name']}.")
+
     def add_message(self, text):
         self.messages.append({"text": text, "start_time": pygame.time.get_ticks()})
         pygame.time.set_timer(MESSAGE_CLEAR_EVENT, 1000, True)
@@ -126,7 +138,7 @@ class GameSession:
             self.draw_text(screen, message["text"], font, color, width - font.size(message["text"])[0] - 50, 50 + i * 50)
 
     def spawn_pokemon(self):
-        pokemon_data_choice = random.choice(self.pokemon_data[:151])
+        pokemon_data_choice = random.choice(self.pokemon_data[:GENS[self.current_generation]["indices"][1]])
         self.current_pokemon = Pokemon(pokemon_data_choice)
         self.typed_name = ""
         self.current_pokemon.cry.play()
@@ -163,6 +175,7 @@ class GameSession:
             self.add_message(f"Combo {self.combo_count}!")
 
         self.current_pokemon.name_sound.play()
+        self.check_progress()
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, 1000, True)
 
     def pokemon_missed(self, wait_time_ms):
@@ -344,6 +357,8 @@ class GameSession:
         self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, 60)
         screen.blit(scoreimg, (20, 25 + 2.3*font_height))
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
+        screen.blit(mistakeimg, (20, 25 + 3.45*font_height))
+        self.draw_text(screen, f"Mistakes: {int(self.mistake_count)}", font, BLACK, 50, 140)
     
     
     @staticmethod
