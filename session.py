@@ -67,10 +67,14 @@ class GameSession:
         self.reset_game(pokemon_data)
 
     def reset_game(self, pokemon_data):
+        self.elapsed_time = 0
         self.game_paused = False
+        self.paused_time_start = 0
+        self.total_paused_time = 0
         self.pokemon_data = pokemon_data
         self.caught_pokemon_count = 0
         self.combo_count = 0
+        self.mistake_count = 0
         self.total_score = 0
         self.current_pokemon = None
         self.typed_name = ""
@@ -84,6 +88,12 @@ class GameSession:
         self.combo_indices = []
         self.reward_map = REWARD_MAP
         pygame.mixer.music.play()
+
+    def update_time(self, time):
+        if not self.game_paused:
+            self.elapsed_time = time - self.start_time - self.total_paused_time
+            if self.current_pokemon:
+                self.current_pokemon.elapsed_time = time - self.current_pokemon.start_time - self.current_pokemon.total_paused_time
 
     def get_combo_reward(self, combo_count):
         return self.reward_map.get(combo_count, 500*(combo_count-14))
@@ -160,6 +170,7 @@ class GameSession:
         if self.combo_count >= 3:
             self.combo_indices.append((len(self.caught_pokemons) - self.combo_count, len(self.caught_pokemons)))
         self.combo_count = 0
+        self.mistake_count += 1
         self.miss_sound.play()
         self.current_pokemon = None
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, wait_time_ms, True)
@@ -180,6 +191,17 @@ class GameSession:
             color = GREEN if i == selected_option else BLACK
             self.draw_text(screen, option, font, color, menu_rect.x + 50, menu_rect.y + 20 + i * 30)
 
+    def pause_game(self, current_time):
+        self.paused_time_start = current_time
+        self.game_paused = True
+        pygame.mixer.music.pause()
+        
+    def unpause_game(self, current_time):
+        self.total_paused_time += current_time - self.paused_time_start
+        self.current_pokemon.total_paused_time += current_time - self.paused_time_start
+        self.game_paused = False
+        pygame.mixer.music.unpause()
+
     def handle_pause_menu_input(self,event):
         global selected_option
         if event.type == pygame.KEYDOWN:
@@ -189,8 +211,7 @@ class GameSession:
                 selected_option = (selected_option + 1) % len(pause_options)
             elif event.key == pygame.K_RETURN:
                 if pause_options[selected_option] == "Resume":
-                    self.game_paused = False
-                    pygame.mixer.music.unpause()
+                    self.unpause_game(pygame.time.get_ticks())
                 elif pause_options[selected_option] == "Restart":
                     self.reset_game(self.pokemon_data)
                     self.spawn_pokemon()
@@ -236,13 +257,11 @@ class GameSession:
         # Draw the caught Pokémon icons
         self.draw_caught_pokemon_icons(screen)
 
-    def draw_caught_pokemon_icons(self, screen):
+    def draw_caught_pokemon_icons(self, screen, rect_x = 10, rect_y = SCREEN_HEIGHT - 210 ):
         # Draw the box around it
         
         rect_width = 400  # Add some padding
         rect_height = 200  # Enough height to cover the name and timer bar
-        rect_x = 10
-        rect_y = SCREEN_HEIGHT - 210 
         
         draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
                
@@ -296,13 +315,34 @@ class GameSession:
             else:
                 screen.blit(normalball, (x+offset,y+offset))
 
+    def draw_end_screen(self,screen, font):
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.fill(GRAY)
+        overlay.set_alpha(150)  # Set transparency to 150
+        screen.blit(overlay, (0, 0))
+
+        # Draw box around 
+        menu_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2 - 50, 600, 550)
+        pygame.draw.rect(screen, WHITE, menu_rect, border_radius=15)
+        pygame.draw.rect(screen, BLACK, menu_rect, 2, border_radius=15)
+
+        # Display Stats
+        self.draw_text(screen, f"SCORE: {self.total_score}", font, BLACK, menu_rect.x + 50, menu_rect.y + 20 )
+        self.draw_text(screen, f"MISTAKES: {self.mistake_count}", font, BLACK, menu_rect.x + 50, menu_rect.y + 50 )
+
+        # Draw the caught Pokémon icons
+        self.draw_caught_pokemon_icons(screen , SCREEN_WIDTH // 2 - 200 , SCREEN_HEIGHT // 2 + 50)
+
+
     def draw_game_scores(self, screen, font):
         # Draw the score and combo count
-        screen.blit(pkbimg, (20, 20))
+        font_height = font.size("Caught")[1]
+        
+        screen.blit(pkbimg, (20, 25))
         self.draw_text(screen, f"Caught: {self.caught_pokemon_count}", font, BLACK, 50, 20)
-        screen.blit(comboimg, (20, 60))
+        screen.blit(comboimg, (20, 25 + 1.15*font_height))
         self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, 60)
-        screen.blit(scoreimg, (20, 100))
+        screen.blit(scoreimg, (20, 25 + 2.3*font_height))
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
     
     

@@ -22,9 +22,9 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pokemon Typing Adventure")
 
 # Font
-font = pygame.font.Font(None, 36)
+font = pygame.font.Font("font/Microsoft Sans Serif.ttf", 30)
 large_font = pygame.font.Font("font/MS PGothic.ttf", 92)
-mini_font = pygame.font.Font(None, 24)
+mini_font = pygame.font.Font("font/Microsoft Sans Serif.ttf", 20)
 
 # Clock
 clock = pygame.time.Clock()
@@ -41,14 +41,16 @@ game_session = GameSession(pokemon_data)
 game_session.spawn_pokemon()
 
 running = True
+
 pygame.time.set_timer(JIGGLE_EVENT, 110)
 pygame.time.set_timer(WALK_EVENT, 200)
 
 while running:
     screen.blit(bg_image, (0, 0))
-    elapsed_time = pygame.time.get_ticks() - game_session.start_time
-    if game_session.current_pokemon:
-        pokemon_time = pygame.time.get_ticks() - game_session.current_pokemon.start_time
+    
+    current_time = pygame.time.get_ticks()
+    
+    game_session.update_time(current_time)
 
     if game_session.current_pokemon and game_session.current_pokemon.legendary and game_session.current_pokemon.get_this_one:
         game_session.add_special_message("Get this one!")
@@ -58,7 +60,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            game_session.game_paused = not game_session.game_paused
+            if game_session.game_paused:
+                game_session.unpause_game(current_time)
+            else:
+                game_session.pause_game(current_time)
+
         elif game_session.game_paused:
             game_session.handle_pause_menu_input(event)
         elif game_session.current_pokemon and event.type == pygame.KEYDOWN:
@@ -66,7 +72,7 @@ while running:
 
             if game_session.current_pokemon.name.startswith(game_session.typed_name):
                 if game_session.typed_name == game_session.current_pokemon.name:
-                    game_session.pokemon_caught(pokemon_time)
+                    game_session.pokemon_caught(game_session.current_pokemon.elapsed_time)
             else:
                 game_session.pokemon_missed(500)
 
@@ -82,19 +88,20 @@ while running:
             game_session.current_pokemon.walk()
 
     # Miss Pokemon due to running out of time
-    if game_session.current_pokemon and pokemon_time > game_session.current_pokemon.time_limit:
+    if game_session.current_pokemon and game_session.current_pokemon.elapsed_time > game_session.current_pokemon.time_limit:
             game_session.pokemon_missed(10)
 
-    # Draw game pause elements
+    # Display messages
     if game_session.game_paused:
-        pygame.mixer.music.pause()
         game_session.draw_pause_menu(screen, font)
     else:
-        # Display messages
-        game_session.draw_game_elements(screen, large_font, pokemon_time, bg_image)
-        game_session.draw_game_scores(screen, font)
+        if game_session.current_pokemon:
+            game_session.draw_game_elements(screen, large_font, game_session.current_pokemon.elapsed_time, bg_image)
         game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
         game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
+    
+    game_session.draw_game_scores(screen, font)
+    
 
     # Draw the copyright line
     copyright_text = "Copyright 2024 Joseph Bae, made for my children with love"

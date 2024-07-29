@@ -28,6 +28,8 @@ class Pokemon:
         self.start_time = pygame.time.get_ticks()
         self.get_this_one = True
         self.walk_offset = [0,0]
+        self.elapsed_time = 0
+        self.total_paused_time = 0
 
     def load_image(self):
         return pygame.image.load(os.path.join('assets/sprites', f"{self.id}.png"))
