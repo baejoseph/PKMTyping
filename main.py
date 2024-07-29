@@ -11,9 +11,6 @@ pygame.init()
 with open("data/pokemon_data_updated.json", "r", encoding="utf-8") as file:
     pokemon_data = json.load(file)
 
-# Load Background Image
-bg_image = pygame.image.load("assets/background/Pallet_Town_anime.png")
-
 # Load all name sounds into memory
 Pokemon.load_name_sounds()
 
@@ -46,7 +43,8 @@ pygame.time.set_timer(JIGGLE_EVENT, 110)
 pygame.time.set_timer(WALK_EVENT, 200)
 
 while running:
-    screen.blit(bg_image, (0, 0))
+
+    screen.blit(game_session.bg_image, (0, 0))
     
     current_time = pygame.time.get_ticks()
     
@@ -96,11 +94,13 @@ while running:
         game_session.draw_pause_menu(screen, font)
     else:
         if game_session.current_pokemon:
-            game_session.draw_game_elements(screen, large_font, game_session.current_pokemon.elapsed_time, bg_image)
+            game_session.draw_game_elements(screen, large_font, game_session.current_pokemon.elapsed_time, game_session.bg_image)
+        # Draw the caught Pokémon icons
         game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
         game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
     
     game_session.draw_game_scores(screen, font)
+    game_session.draw_caught_pokemon_icons(screen)
     
 
     # Draw the copyright line

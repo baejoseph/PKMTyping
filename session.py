@@ -18,7 +18,6 @@ greatball = pygame.transform.scale(pygame.image.load("assets/items/gen5/great-ba
 normalball = pygame.transform.scale(pygame.image.load("assets/items/gen5/poke-ball.png"), (25, 25))
 
 pygame.mixer.init()
-pygame.mixer.music.load("assets/music/Pikachu.mp3")
 
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
@@ -77,6 +76,7 @@ class GameSession:
         self.caught_pokemon_count = 0
         self.combo_count = 0
         self.mistake_count = 0
+        self.total_mistake_count = 0
         self.total_score = 0
         self.current_pokemon = None
         self.typed_name = ""
@@ -90,7 +90,23 @@ class GameSession:
         self.combo_indices = []
         self.reward_map = REWARD_MAP
         self.current_generation = 0
+        self.bg_image = pygame.image.load(f"assets/background/{GENS[self.current_generation]['bg']}")
+        pygame.mixer.music.load(f"assets/music/{GENS[self.current_generation]['music']}")
         pygame.mixer.music.play()
+
+    def change_generation(self, new_generation):
+        self.bg_image = pygame.image.load(f"assets/background/{GENS[new_generation]['bg']}")
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+        pygame.mixer.music.load(f"assets/music/{GENS[new_generation]['music']}")
+        if new_generation > self.current_generation:
+            self.add_message(f"Excellent! {GENS[self.current_generation]['name']} unlocked!")
+        if new_generation == self.current_generation:
+            self.add_message(f"Nearly! Stay in {GENS[self.current_generation]['name']}.")
+        if new_generation < self.current_generation:
+            self.add_message(f"Nearly! Stay in {GENS[self.current_generation]['name']}.")
+        pygame.mixer.music.play()
+        self.current_generation = new_generation
 
     def update_time(self, time):
         if not self.game_paused:
@@ -112,12 +128,14 @@ class GameSession:
 
     def check_progress(self):
         if self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
-            legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons]).sum()
-            if (legend_or_fast / self.caught_pokemon_count > PASS_MARK) and (self.mistake_count < MAX_MISTAKE * self.caught_pokemon_count/10):
-                self.current_generation += 1
-                self.add_message(f"Excellent! {GENS[self.current_generation]['name']} unlocked!")
+            legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
+            if (legend_or_fast > PASS_MARK) and (self.mistake_count < MAX_MISTAKE):
+                self.change_generation(self.current_generation + 1)
+            if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 4* MAX_MISTAKE):
+                self.change_generation(max(0, self.current_generation - 1))
             else:
-                self.add_message(f"Too slow! Stay in {GENS[self.current_generation]['name']}.")
+                self.change_generation(max(0, self.current_generation))
+            self.mistake_count = 0
 
     def add_message(self, text):
         self.messages.append({"text": text, "start_time": pygame.time.get_ticks()})
@@ -138,7 +156,7 @@ class GameSession:
             self.draw_text(screen, message["text"], font, color, width - font.size(message["text"])[0] - 50, 50 + i * 50)
 
     def spawn_pokemon(self):
-        pokemon_data_choice = random.choice(self.pokemon_data[:GENS[self.current_generation]["indices"][1]])
+        pokemon_data_choice = random.choice(self.pokemon_data[GENS[self.current_generation]["indices"][0]:GENS[self.current_generation]["indices"][1]])
         self.current_pokemon = Pokemon(pokemon_data_choice)
         self.typed_name = ""
         self.current_pokemon.cry.play()
@@ -184,6 +202,7 @@ class GameSession:
             self.combo_indices.append((len(self.caught_pokemons) - self.combo_count, len(self.caught_pokemons)))
         self.combo_count = 0
         self.mistake_count += 1
+        self.total_mistake_count += 1
         self.miss_sound.play()
         self.current_pokemon = None
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, wait_time_ms, True)
@@ -266,9 +285,6 @@ class GameSession:
                 self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
         else:
             screen.blit(bg_image, (0, 0))
-
-        # Draw the caught Pokémon icons
-        self.draw_caught_pokemon_icons(screen)
 
     def draw_caught_pokemon_icons(self, screen, rect_x = 10, rect_y = SCREEN_HEIGHT - 210 ):
         # Draw the box around it
@@ -358,7 +374,7 @@ class GameSession:
         screen.blit(scoreimg, (20, 25 + 2.3*font_height))
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
         screen.blit(mistakeimg, (20, 25 + 3.45*font_height))
-        self.draw_text(screen, f"Mistakes: {int(self.mistake_count)}", font, BLACK, 50, 140)
+        self.draw_text(screen, f"Mistakes: {int(self.total_mistake_count)}", font, BLACK, 50, 140)
     
     
     @staticmethod
