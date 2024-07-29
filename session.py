@@ -129,7 +129,8 @@ class GameSession:
     def check_progress(self):
         if self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
             legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
-            if (legend_or_fast > PASS_MARK) and (self.mistake_count <= MAX_MISTAKE):
+            legend_or_fast += np.array([x[2] for x in self.caught_pokemons[-10:]]).sum() / 2
+            if (legend_or_fast >= PASS_MARK) and (self.mistake_count <= MAX_MISTAKE):
                 self.change_generation(self.current_generation + 1)
             if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 4* MAX_MISTAKE):
                 self.change_generation(max(0, self.current_generation - 1))

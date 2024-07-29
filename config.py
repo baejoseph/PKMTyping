@@ -28,7 +28,7 @@ GENS = [
     {"id": 3,
   "name": "Hoenn",
   "indices": [251,386],
-  "bg": "Stateport_City_anime.png",
+  "bg": "Slateport_City_anime.png",
   "music":"Zorua.mp3"},
     {"id": 4,
   "name": "Sinnoh",
@@ -47,8 +47,8 @@ NOT_SHOW_NAME_TIME = 3000
 LEGENDARY_CUTOFF = 250
 NORMAL_POKEMON_CATCH_TIME = 9000
 LEGENDARY_POKEMON_CATCH_TIME = 4000
-PASS_MARK = 8
-MAX_MISTAKE = 3
+PASS_MARK = 7
+MAX_MISTAKE = 5
 REWARD_MAP = {
             1: 100,
             2: 150,
