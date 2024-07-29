@@ -57,6 +57,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif game_session.game_ended:
+            game_session.handle_end_menu_input(event)
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             if game_session.game_paused:
                 game_session.unpause_game(current_time)
@@ -90,7 +92,9 @@ while running:
             game_session.pokemon_missed(10)
 
     # Display messages
-    if game_session.game_paused:
+    if game_session.game_ended:
+        game_session.draw_end_screen(screen, font)
+    elif game_session.game_paused:
         game_session.draw_pause_menu(screen, font)
     else:
         if game_session.current_pokemon:
@@ -99,8 +103,9 @@ while running:
         game_session.display_messages(screen, font, BLACK, SCREEN_WIDTH)
         game_session.display_special_message(screen, font, BLACK, SCREEN_WIDTH, SCREEN_HEIGHT)
     
-    game_session.draw_game_scores(screen, font)
-    game_session.draw_caught_pokemon_icons(screen)
+    if not game_session.game_ended:
+        game_session.draw_game_scores(screen, font)
+        game_session.draw_caught_pokemon_icons(screen)
     
 
     # Draw the copyright line
