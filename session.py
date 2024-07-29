@@ -370,6 +370,9 @@ class GameSession:
         # Display Stats
         self.draw_text(screen, f"SCORE: {round(self.total_score)}", font, BLACK, menu_rect.x + 50, menu_rect.y + 20 )
         self.draw_text(screen, f"MISTAKES: {self.total_mistake_count}", font, BLACK, menu_rect.x + 50, menu_rect.y + 50 )
+        max_combo_length = max(end - start for start, end in self.combo_indices) if self.combo_indices else 0
+        self.draw_text(screen, f"MAX COMBO: {max_combo_length}", font, BLACK, menu_rect.x + 50, menu_rect.y + 80 )
+
 
         for i, option in enumerate(GameSession.END_OPTIONS):
             color = GREEN if i == self.selected_end_option else BLACK
