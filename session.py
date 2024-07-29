@@ -149,7 +149,7 @@ class GameSession:
 
     def display_special_message(self, screen, font, color, width, height):
         current_time = pygame.time.get_ticks()
-        self.draw_text(screen, self.special_message["text"], font, color, (width - font.size(self.special_message["text"])[0] - 50) // 2, 100)
+        self.draw_text(screen, self.special_message["text"], font, color, (width - font.size(self.special_message["text"])[0] - 50) // 2, 70)
 
     def display_messages(self, screen, font, color, width):
         current_time = pygame.time.get_ticks()
