@@ -514,8 +514,6 @@ class GameSession:
     
     def update_capture_animation(self, screen):
         if self.animation_state == "PARABOLIC":
-            # Calculate the parabolic path
-            
             
             # Horizontal movement towards Pokémon
             horizontal_distance = self.ball_target[0] - self.ball_start[0]
@@ -528,7 +526,18 @@ class GameSession:
                                      self.ball_target[1] * x_fraction + 
                                      peak_height * (1 - (2 * x_fraction - 1) ** 2))
 
-            screen.blit(self.ball_sprite, self.ball_position)
+            # Calculate the scale
+            ball_scale_max = 4.0
+            scale = ball_scale_max - (ball_scale_max - 1) * ((self.ball_position[0] - self.ball_start[0])  / horizontal_distance)
+
+            # Calculate the scaled size of the ball
+            scaled_width = int(self.ball_sprite.get_width() * scale)
+            scaled_height = int(self.ball_sprite.get_height() * scale)
+            
+            # Scale the halo effect image
+            scaled_ball_sprite = pygame.transform.scale(self.ball_sprite, (scaled_width, scaled_height))
+
+            screen.blit(scaled_ball_sprite, self.ball_position)
 
             # Check if the ball reached the target
             if abs(self.ball_position[0] - self.ball_target[0]) < 5:
