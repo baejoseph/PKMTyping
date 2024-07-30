@@ -295,12 +295,7 @@ class GameSession:
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name[:-1]):  # All typed letters except the last one
                 char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-                if self.current_pokemon.name.startswith(self.typed_name[:i + 1]):
-                    # Correct letter: draw in red
-                    self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
-                else:
-                    # Incorrect letter: draw in black
-                    self.draw_text(screen, char, font, BLACK, char_x + walk_x, 240)
+                self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
 
             # Animate the last typed letter
             if self.typed_name:
