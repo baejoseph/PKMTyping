@@ -61,6 +61,7 @@ class GameSession:
         self.combo_indices = []
         self.reward_map = REWARD_MAP
         self.current_generation = 0
+        self.current_level = 1
         self.max_region_reached = GENS[self.current_generation]['name']
         self.bg_image = pygame.image.load(f"assets/background/{GENS[self.current_generation]['bg']}")
         pygame.mixer.music.load(f"assets/music/{GENS[self.current_generation]['music']}")
@@ -124,6 +125,8 @@ class GameSession:
     def check_progress(self):
         if self.caught_pokemon_count >=50:
                 self.end_game()
+        elif self.current_level * 10 > self.caught_pokemon_count:
+            pass
         elif self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
             legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
             legend_or_fast += np.array([x[2] for x in self.caught_pokemons[-10:]]).sum() / 2
@@ -133,7 +136,9 @@ class GameSession:
                 self.change_generation(max(0, self.current_generation - 1))
             else:
                 self.change_generation(self.current_generation)
+            self.current_level += 1
             self.mistake_count = 0
+        self.spawn_pokemon()
 
     def add_message(self, text, howlong=1000):
         self.messages.append({"text": text, "start_time": pygame.time.get_ticks()})

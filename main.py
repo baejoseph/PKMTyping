@@ -83,7 +83,6 @@ while running:
                 game_session.pokemon_missed(500)
 
         elif event.type == SPAWN_POKEMON_EVENT:
-            game_session.spawn_pokemon()
             game_session.check_progress()
         elif event.type == MESSAGE_CLEAR_EVENT:
             game_session.messages.clear()
