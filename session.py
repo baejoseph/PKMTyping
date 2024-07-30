@@ -41,6 +41,7 @@ class GameSession:
         self.start_time = pygame.time.get_ticks()
         self.caught_sound = pygame.mixer.Sound('assets/sounds/paafekuto.ogg')
         self.miss_sound = pygame.mixer.Sound('assets/sounds/daijoubu.ogg')
+        self.keystroke_sound = pygame.mixer.Sound('assets/sounds/clack.wav')
         self.messages = []
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
         self.jiggle_offset = [0, 0]
@@ -48,6 +49,7 @@ class GameSession:
         self.combo_indices = []
         self.reward_map = REWARD_MAP
         self.current_generation = 0
+        self.max_region_reached = GENS[self.current_generation]['name']
         self.bg_image = pygame.image.load(f"assets/background/{GENS[self.current_generation]['bg']}")
         pygame.mixer.music.load(f"assets/music/{GENS[self.current_generation]['music']}")
         pygame.mixer.music.play()
@@ -225,6 +227,7 @@ class GameSession:
         self.animation_start_time = pygame.time.get_ticks()
         self.current_animating_char = char
         self.is_correct = self.current_pokemon.name.startswith(self.typed_name)
+        self.keystroke_sound.play()
 
     def animate_letter_appearance(self, screen, font, x, y, animation_duration=200):
         """
@@ -378,7 +381,7 @@ class GameSession:
         self.draw_text(screen, f"MISTAKES: {self.total_mistake_count}", font, BLACK, menu_rect.x + 50, menu_rect.y + 50 )
         max_combo_length = max(end - start for start, end in self.combo_indices) if self.combo_indices else 0
         self.draw_text(screen, f"MAX COMBO: {max_combo_length}", font, BLACK, menu_rect.x + 50, menu_rect.y + 80 )
-
+        self.draw_text(screen, f"REACHED: {self.max_region_reached}", font, BLACK, menu_rect.x + 50, menu_rect.y + 110 )
 
         for i, option in enumerate(GameSession.END_OPTIONS):
             color = GREEN if i == self.selected_end_option else BLACK
@@ -413,7 +416,7 @@ class GameSession:
         screen.blit(Sprites.scoreimg, (20, 25 + 2.3*font_height))
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
         screen.blit(Sprites.mistakeimg, (20, 25 + 3.45*font_height))
-        self.draw_text(screen, f"Mistakes: {int(self.total_mistake_count)}", font, BLACK, 50, 140)
+        self.draw_text(screen, f"Mistakes: {int(self.mistake_count)} / {MAX_MISTAKE}", font, BLACK, 50, 140)
     
     
     @staticmethod
