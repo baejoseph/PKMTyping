@@ -45,6 +45,14 @@ class GameSession:
         self.messages = []
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
         self.jiggle_offset = [0, 0]
+        self.ball_sprite = pygame.image.load("assets/items/gen5/poke-ball.png")  # Load ball sprite
+        self.halo_effect = pygame.image.load("assets/items/gen5/adamant-orb.png")  # Load halo effect sprite
+        self.animation_state = "IDLE"  # Track the state of the animation
+        self.ball_position = [0, 0]  # Initial ball position
+        self.ball_target = [0, 0]  # Target position for the ball
+        self.ball_start = [0, 0]  # Start position for the ball
+        self.halo_visible = False
+        self.halo_timer = 0
         self.caught_pokemons = []
         self.combo_indices = []
         self.reward_map = REWARD_MAP
@@ -61,6 +69,7 @@ class GameSession:
         pygame.mixer.music.load(f"assets/music/{GENS[new_generation]['music']}")
         if new_generation > self.current_generation:
             self.add_message(f"Excellent! {GENS[new_generation]['name']} unlocked!", 5000)
+            self.max_region_reached = GENS[new_generation]['name']
         if new_generation == self.current_generation:
             self.add_message(f"Stay in {GENS[self.current_generation]['name']}.", 5000)
         if new_generation < self.current_generation:
@@ -122,9 +131,17 @@ class GameSession:
         self.typed_name = ""
         self.current_pokemon.cry.play()
 
+    def start_capture_animation(self):
+        self.animation_state = "PARABOLIC"
+        self.ball_start = [SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT - 50]  # Starting from the center bottom
+        self.ball_position = list(self.ball_start)
+        self.ball_target = list(self.current_pokemon.current_position)  # Current Pokémon position
+        self.halo_visible = False
+        self.halo_timer = 0
+
     def pokemon_caught(self, elapsed_time):
         self.caught_pokemon_count += 1
-        self.combo_count += 1
+        self.combo_count += 1       
 
         # Calculate score
         base_score = self.get_combo_reward(self.combo_count)
@@ -133,13 +150,19 @@ class GameSession:
         speed_multiplier = self.get_speed_multiplier(elapsed_time, self.current_pokemon.time_limit)
         score = base_score * speed_multiplier
         self.total_score += score
-
-        # Add to caught Pokémon list
-        self.caught_pokemons.append((self.current_pokemon.icon, 
-                                     self.current_pokemon.legendary,
-                                     speed_multiplier == 1.2, 
-                                     speed_multiplier == 1.5))
-
+        self.current_pokemon.is_fast = speed_multiplier == 1.2
+        self.current_pokemon.is_super_fast = speed_multiplier == 1.5
+        
+        # Start capture animation
+        if self.current_pokemon.legendary:
+            self.ball_sprite = pygame.image.load("assets/items/gen5/master-ball.png")
+        elif self.current_pokemon.is_super_fast:
+            self.ball_sprite = pygame.image.load("assets/items/gen5/ultra-ball.png")
+        elif self.current_pokemon.is_fast:
+            self.ball_sprite = pygame.image.load("assets/items/gen5/great-ball.png")
+        else:
+            self.ball_sprite = pygame.image.load("assets/items/gen5/poke-ball.png")
+        
         # Add messages
         if self.current_pokemon.legendary:
             legendary = "LEGENDARY "
@@ -156,6 +179,17 @@ class GameSession:
             self.add_message(f"Combo {self.combo_count}!")
 
         self.current_pokemon.name_sound.play()
+        
+        self.caught_pokemon = self.current_pokemon.copy()
+        
+        # Add to caught Pokémon list
+        self.caught_pokemons.append((self.caught_pokemon.icon, 
+                                            self.caught_pokemon.legendary,
+                                            self.caught_pokemon.is_fast, 
+                                            self.caught_pokemon.is_super_fast))
+        
+        self.start_capture_animation()
+        
         self.check_progress()
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, 1000, True)
 
@@ -178,8 +212,7 @@ class GameSession:
 
         # Draw pause menu options
         menu_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50, 250, 150)
-        pygame.draw.rect(screen, WHITE, menu_rect, border_radius=15)
-        pygame.draw.rect(screen, BLACK, menu_rect, 2, border_radius=15)
+        self.draw_rounded_rect(screen, menu_rect, WHITE, radius=15, outline_color=BLACK)
 
         for i, option in enumerate(GameSession.PAUSE_OPTIONS):
             color = GREEN if i == self.selected_pause_option else BLACK
@@ -275,7 +308,9 @@ class GameSession:
             screen.blit(self.current_pokemon.bg, (SCREEN_WIDTH - SCREEN_HEIGHT//2 - 50, SCREEN_HEIGHT// 2 -50))
 
             # Draw the Pokemon sprite
-            screen.blit(self.current_pokemon.sprite, (SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x, 100 + walk_y + jiggle_y))
+            self.current_pokemon.current_position[0] = SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x
+            self.current_pokemon.current_position[1] = 100 + walk_y + jiggle_y
+            screen.blit(self.current_pokemon.sprite, self.current_pokemon.current_position)
 
             # Draw the rounded rectangle around the Pokémon name and timer bar
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
@@ -306,6 +341,21 @@ class GameSession:
                 self.animate_letter_appearance(screen, font, last_char_x + walk_x, 240)
         else:
             screen.blit(bg_image, (0, 0))
+
+    def get_target_position_in_array(self):
+        x_start = 20
+        y_start = SCREEN_HEIGHT - 205
+        cols = 10
+        icon_size = 32
+        padding = 5
+        
+        index = len(self.caught_pokemons)
+        col = (index) % cols
+        row = (index) // cols
+        x = x_start + col * (icon_size + padding)
+        y = y_start + row * (icon_size + padding)
+        
+        return x,y
 
     def draw_caught_pokemon_icons(self, screen, rect_x = 10, rect_y = SCREEN_HEIGHT - 210 ):
         # Draw the box around it
@@ -373,8 +423,7 @@ class GameSession:
 
         # Draw box around 
         menu_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2 - 250, 600, 550)
-        pygame.draw.rect(screen, WHITE, menu_rect, border_radius=15)
-        pygame.draw.rect(screen, BLACK, menu_rect, 2, border_radius=15)
+        self.draw_rounded_rect(screen, menu_rect, WHITE, radius=15, outline_color=BLACK)
 
         # Display Stats
         self.draw_text(screen, f"SCORE: {round(self.total_score)}", font, BLACK, menu_rect.x + 50, menu_rect.y + 20 )
@@ -417,6 +466,87 @@ class GameSession:
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
         screen.blit(Sprites.mistakeimg, (20, 25 + 3.45*font_height))
         self.draw_text(screen, f"Mistakes: {int(self.mistake_count)} / {MAX_MISTAKE}", font, BLACK, 50, 140)
+    
+    def update_capture_animation(self, screen):
+        if self.animation_state == "PARABOLIC":
+            # Calculate the parabolic path
+            
+            
+            # Horizontal movement towards Pokémon
+            horizontal_distance = self.ball_target[0] - self.ball_start[0]
+            self.ball_position[0] += horizontal_distance / 40  # Adjust denominator for speed
+
+            # Calculate height for the parabola
+            peak_height = (self.ball_target[1] - self.ball_start[1]) / 2 - 100  # Adjust -100 for peak height
+            x_fraction = (self.ball_position[0] - self.ball_start[0]) / horizontal_distance
+            self.ball_position[1] = (self.ball_start[1] * (1 - x_fraction) + 
+                                     self.ball_target[1] * x_fraction + 
+                                     peak_height * (1 - (2 * x_fraction - 1) ** 2))
+
+            screen.blit(self.ball_sprite, self.ball_position)
+
+            # Check if the ball reached the target
+            if abs(self.ball_position[0] - self.ball_target[0]) < 5:
+                self.animation_state = "HALO"
+                self.halo_timer = pygame.time.get_ticks()
+
+        elif self.animation_state == "HALO":
+            # Calculate the time elapsed since the halo animation started
+            elapsed = pygame.time.get_ticks() - self.halo_timer
+            halo_effect_duration = 400
+            halo_offset_x = 40  # Example offset values
+            halo_offset_y = 60
+            halo_scale_max = 7.0
+            
+            # Determine the scale factor (from 1.0 to 4.0 and back to 1.0)
+            if elapsed <= halo_effect_duration / 2:
+                scale = 1.0 + (halo_scale_max - 1) * (elapsed / (halo_effect_duration/2))  # Expanding phase
+            else:
+                scale = halo_scale_max - (halo_scale_max - 1) * ((elapsed - (halo_effect_duration/2)) / (halo_effect_duration/2))  # Shrinking phase
+
+            # Prevent scale from becoming negative
+            scale = max(scale, 1.0)
+            
+            # Calculate the scaled size of the halo effect
+            scaled_width = int(self.halo_effect.get_width() * scale)
+            scaled_height = int(self.halo_effect.get_height() * scale)
+            
+            # Scale the halo effect image
+            scaled_halo_effect = pygame.transform.scale(self.halo_effect, (scaled_width, scaled_height))
+            
+            # Calculate the position to center the scaled halo at the ball's position with offset
+            halo_x = self.ball_target[0] + halo_offset_x - scaled_halo_effect.get_width() // 2
+            halo_y = self.ball_target[1] + halo_offset_y - scaled_halo_effect.get_height() // 2
+            
+            # Draw the halo effect
+            screen.blit(scaled_halo_effect, (halo_x, halo_y))
+    
+            # Transition to the next state after the halo animation completes
+            if elapsed > halo_effect_duration:
+                self.animation_state = "BEELINE"
+                self.ball_target = self.get_target_position_in_array()
+
+        elif self.animation_state == "BEELINE":
+            # Smooth transition to bottom left
+            speed = 10
+            if self.ball_position[0] > self.ball_target[0]:
+                self.ball_position[0] -= speed
+            if self.ball_position[1] < self.ball_target[1]:
+                self.ball_position[1] += speed
+
+            screen.blit(self.ball_sprite, self.ball_position)
+
+            # Check if the ball reached the destination
+            if (abs(self.ball_position[0] - self.ball_target[0]) < 5 and
+                abs(self.ball_position[1] - self.ball_target[1]) < 5):
+                self.animation_state = "IDLE"
+                
+                # Create a transparent surface
+                transparent_patch = pygame.Surface((100, 100), pygame.SRCALPHA)
+                transparent_patch.fill((0, 0, 0, 0))  # Fill with transparent color
+
+                # Blit the transparent patch onto the screen at the desired position
+                screen.blit(transparent_patch, self.ball_position)
     
     
     @staticmethod

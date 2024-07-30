@@ -24,10 +24,13 @@ class Pokemon:
         self.cry = self.load_sound()
         self.name_sound = Pokemon.name_sounds.get(self.id, None)
         self.legendary = self.is_legendary(data["base"])
+        self.is_fast = False
+        self.is_super_fast = False
         self.time_limit = self.get_time_limit(data["base"])
         self.start_time = pygame.time.get_ticks()
         self.get_this_one = True
         self.walk_offset = [0,0]
+        self.current_position = [0,0]
         self.elapsed_time = 0
         self.total_paused_time = 0
 
@@ -84,3 +87,12 @@ class Pokemon:
     def walk(self):
         self.walk_offset[0] += random.randint(-5, 5)
         self.walk_offset[1] += random.randint(-5, 5)
+        
+    def copy(self):
+        # Create a new Pokemon instance without initializing it
+        new_copy = Pokemon.__new__(Pokemon)
+
+        # Copy the attributes from the current instance to the new one
+        new_copy.__dict__ = self.__dict__.copy()
+
+        return new_copy

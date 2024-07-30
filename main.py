@@ -91,6 +91,9 @@ while running:
         elif game_session.current_pokemon and event.type == WALK_EVENT:
             game_session.current_pokemon.walk()
 
+    if game_session.animation_state != "IDLE":
+        game_session.update_capture_animation(screen)
+
     # Miss Pokemon due to running out of time
     if game_session.current_pokemon and game_session.current_pokemon.elapsed_time > game_session.current_pokemon.time_limit:
             game_session.pokemon_missed(10)
