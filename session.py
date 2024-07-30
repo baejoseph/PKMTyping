@@ -3,7 +3,7 @@ import pygame
 import random
 from pokemon import Pokemon
 from sprites import Sprites
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE, FONTPATH
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE, FONTPATH, TRANSITION_TIME
 
 pygame.mixer.init()
 
@@ -11,18 +11,22 @@ pygame.mixer.init()
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
+TRANSITION_END_EVENT = pygame.USEREVENT + 6
 
 class GameSession:
     PAUSE_OPTIONS = ["Resume", "Restart", "End Game"]
     END_OPTIONS = ["Restart", "Quit"]
 
-    def __init__(self, pokemon_data):
+    def __init__(self, pokemon_data, screen, font):
+        self.screen = screen
+        self.font = font
         self.reset_game(pokemon_data)
 
     def reset_game(self, pokemon_data):
         self.elapsed_time = 0
         self.game_paused = False
         self.selected_pause_option = 0
+        self.transitioning = False
         self.game_ended = False
         self.selected_end_option = 0
         self.paused_time_start = 0
@@ -60,7 +64,7 @@ class GameSession:
         self.max_region_reached = GENS[self.current_generation]['name']
         self.bg_image = pygame.image.load(f"assets/background/{GENS[self.current_generation]['bg']}")
         pygame.mixer.music.load(f"assets/music/{GENS[self.current_generation]['music']}")
-        pygame.mixer.music.play()
+        self.start_transition()
 
     def change_generation(self, new_generation):
         self.bg_image = pygame.image.load(f"assets/background/{GENS[new_generation]['bg']}")
@@ -74,8 +78,30 @@ class GameSession:
             self.add_message(f"Stay in {GENS[self.current_generation]['name']}.", 5000)
         if new_generation < self.current_generation:
             self.add_message(f"Move back to in {GENS[new_generation]['name']}.", 5000)
-        pygame.mixer.music.play()
         self.current_generation = new_generation
+        self.start_transition()
+
+    def start_transition(self):
+        self.pause_game(pygame.time.get_ticks(), False)
+        pygame.mixer.music.play()
+        pygame.time.set_timer(TRANSITION_END_EVENT, TRANSITION_TIME)
+
+    def display_region_transition(self):
+        self.screen.blit(self.bg_image, (0, 0))
+        # Create a semi-transparent overlay
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((50, 50, 50, 200))  # Grey with 200 alpha for transparency
+        self.screen.blit(overlay, (0, 0))
+
+        # Prepare the welcome message
+        message = f"Welcome to {GENS[self.current_generation]['name']}!"
+        text_surface = self.font.render(message, True, WHITE)
+        
+        # Center the text on the screen
+        text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        self.screen.blit(text_surface, text_rect)
+
+        pygame.display.flip()
 
     def update_time(self, time):
         if not self.game_paused:
@@ -96,12 +122,14 @@ class GameSession:
             return 1.0
 
     def check_progress(self):
-        if self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
+        if self.caught_pokemon_count >=50:
+                self.end_game()
+        elif self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
             legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
             legend_or_fast += np.array([x[2] for x in self.caught_pokemons[-10:]]).sum() / 2
             if (legend_or_fast >= PASS_MARK) and (self.mistake_count <= MAX_MISTAKE):
                 self.change_generation(self.current_generation + 1)
-            if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 4* MAX_MISTAKE):
+            if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 2* MAX_MISTAKE):
                 self.change_generation(max(0, self.current_generation - 1))
             else:
                 self.change_generation(self.current_generation)
@@ -190,8 +218,13 @@ class GameSession:
         
         self.start_capture_animation()
         
-        self.check_progress()
-        pygame.time.set_timer(SPAWN_POKEMON_EVENT, 1000, True)
+        if self.caught_pokemon_count in [0, 10, 20, 30, 40]:
+            spawn_delay = TRANSITION_TIME + 1000
+        else:
+            spawn_delay = 1000
+        
+        
+        pygame.time.set_timer(SPAWN_POKEMON_EVENT, spawn_delay, True)
 
     def pokemon_missed(self, wait_time_ms):
         self.add_message("Missed!")
@@ -220,16 +253,23 @@ class GameSession:
             
         self.draw_caught_pokemon_icons(screen)
 
-    def pause_game(self, current_time):
+    def pause_game(self, current_time, pause_music = True):
         self.paused_time_start = current_time
-        self.game_paused = True
-        pygame.mixer.music.pause()
+        if pause_music == True:
+            pygame.mixer.music.pause()
+            self.game_paused = True
+        else:
+            self.transitioning = True
         
-    def unpause_game(self, current_time):
-        self.total_paused_time += current_time - self.paused_time_start
-        self.current_pokemon.total_paused_time += current_time - self.paused_time_start
-        self.game_paused = False
-        pygame.mixer.music.unpause()
+    def unpause_game(self, current_time, pause_music = True):
+        if pause_music == True:
+            self.total_paused_time += current_time - self.paused_time_start
+            if self.current_pokemon:
+                self.current_pokemon.total_paused_time += current_time - self.paused_time_start
+            pygame.mixer.music.unpause()
+            self.game_paused = False
+        else:
+            self.transitioning = False
 
     def end_game(self):
         if self.combo_count >= 3:

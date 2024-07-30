@@ -2,7 +2,7 @@ import pygame
 import json
 from pokemon import Pokemon
 from session import GameSession
-from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK, FONTPATH
+from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK, FONTPATH, TRANSITION_TIME
 
 # Initialize Pygame
 pygame.init()
@@ -32,9 +32,10 @@ MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
 WALK_EVENT = pygame.USEREVENT + 3
 JIGGLE_EVENT = pygame.USEREVENT + 4
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
+TRANSITION_END_EVENT = pygame.USEREVENT + 6
 
 # Main game loop
-game_session = GameSession(pokemon_data)
+game_session = GameSession(pokemon_data, screen, font)
 game_session.spawn_pokemon()
 
 running = True
@@ -42,10 +43,11 @@ running = True
 pygame.time.set_timer(JIGGLE_EVENT, 110)
 pygame.time.set_timer(WALK_EVENT, 200)
 
+current_time = 0
+
 while running:
 
     screen.blit(game_session.bg_image, (0, 0))
-    
     current_time = pygame.time.get_ticks()
     
     game_session.update_time(current_time)
@@ -82,6 +84,7 @@ while running:
 
         elif event.type == SPAWN_POKEMON_EVENT:
             game_session.spawn_pokemon()
+            game_session.check_progress()
         elif event.type == MESSAGE_CLEAR_EVENT:
             game_session.messages.clear()
         elif event.type == SPECIAL_MESSAGE_CLEAR_EVENT:
@@ -90,6 +93,12 @@ while running:
             game_session.jiggle_offset = game_session.jiggle()
         elif game_session.current_pokemon and event.type == WALK_EVENT:
             game_session.current_pokemon.walk()
+        elif event.type == TRANSITION_END_EVENT:
+            game_session.unpause_game(current_time, False)
+
+    if game_session.transitioning:
+        game_session.display_region_transition()
+        continue
 
     if game_session.animation_state != "IDLE":
         game_session.update_capture_animation(screen)
