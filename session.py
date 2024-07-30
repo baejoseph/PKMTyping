@@ -3,7 +3,7 @@ import pygame
 import random
 from pokemon import Pokemon
 from sprites import Sprites
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE, FONTPATH
 
 pygame.mixer.init()
 
@@ -35,6 +35,9 @@ class GameSession:
         self.total_score = 0
         self.current_pokemon = None
         self.typed_name = ""
+        self.animation_start_time = 0
+        self.current_animating_char = ''
+        self.is_correct = False
         self.start_time = pygame.time.get_ticks()
         self.caught_sound = pygame.mixer.Sound('assets/sounds/paafekuto.ogg')
         self.miss_sound = pygame.mixer.Sound('assets/sounds/daijoubu.ogg')
@@ -215,6 +218,48 @@ class GameSession:
                 elif GameSession.PAUSE_OPTIONS[self.selected_pause_option] == "End Game":
                     self.end_game()
 
+    def animate_last_letter(self, char):
+        """
+        Set up the animation for the last typed letter.
+        """
+        self.animation_start_time = pygame.time.get_ticks()
+        self.current_animating_char = char
+        self.is_correct = self.current_pokemon.name.startswith(self.typed_name)
+
+    def animate_letter_appearance(self, screen, font, x, y, animation_duration=200):
+        """
+        Animate the appearance of the last typed letter with a "boom" effect.
+        - animation_duration: Total duration of the animation (in milliseconds).
+        """
+        elapsed = pygame.time.get_ticks() - self.animation_start_time
+        if elapsed > animation_duration:
+            if self.is_correct:
+                # At the end of animation, correct letters stay as red
+                text_surface = font.render(self.current_animating_char, True, RED)
+                screen.blit(text_surface, (x, y))
+            return  # Animation completed, no need to draw
+
+        # Calculate the scale factor based on elapsed time
+        half_duration = animation_duration / 2
+        if elapsed <= half_duration:
+            # Growing phase
+            scale = 1.0 + (0.5 * (elapsed / half_duration))  # Scale from 1.0 to 1.5
+        else:
+            # Shrinking phase
+            scale = 1.5 - (0.5 * ((elapsed - half_duration) / half_duration))  # Scale from 1.5 to 1.0
+
+        # Create a new font object with the scaled size
+        scaled_font_size = int(font.get_height() * scale)
+        scaled_font = pygame.font.Font(FONTPATH, scaled_font_size)
+
+        # Render the character with the scaled font
+        text_surface = scaled_font.render(self.current_animating_char, True, BLACK)
+
+        # Calculate new position to keep the letter centered
+        new_x = x - (text_surface.get_width() - font.size(self.current_animating_char)[0]) // 2
+        new_y = y - (text_surface.get_height() - font.size(self.current_animating_char)[1]) // 2
+
+        self.draw_text(screen, self.current_animating_char, scaled_font, BLACK, new_x, new_y)
 
     def draw_game_elements(self, screen, font, elapsed_time, bg_image):
         if self.current_pokemon:
@@ -248,9 +293,19 @@ class GameSession:
                 self.draw_timer_bar(screen, name_x + walk_x, rect_y + name_height + 20, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
-            for i, char in enumerate(self.typed_name):
+            for i, char in enumerate(self.typed_name[:-1]):  # All typed letters except the last one
                 char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-                self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
+                if self.current_pokemon.name.startswith(self.typed_name[:i + 1]):
+                    # Correct letter: draw in red
+                    self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
+                else:
+                    # Incorrect letter: draw in black
+                    self.draw_text(screen, char, font, BLACK, char_x + walk_x, 240)
+
+            # Animate the last typed letter
+            if self.typed_name:
+                last_char_x = name_x + font.size(self.current_pokemon.name[:len(self.typed_name) - 1])[0]
+                self.animate_letter_appearance(screen, font, last_char_x + walk_x, 240)
         else:
             screen.blit(bg_image, (0, 0))
 
@@ -367,9 +422,19 @@ class GameSession:
     
     
     @staticmethod
-    def draw_text(surface, text, font, color, x, y):
+    def draw_text(screen, text, font, color, x, y, outline_color = WHITE, outline_thickness = 2):
+        """
+        Draw text with an outline.
+        """
+        # Draw outline
+        for dx in range(-outline_thickness, outline_thickness + 1):
+            for dy in range(-outline_thickness, outline_thickness + 1):
+                if dx != 0 or dy != 0:
+                    outline_surface = font.render(text, True, outline_color)
+                    screen.blit(outline_surface, (x + dx, y + dy))
+        
         text_obj = font.render(text, True, color)
-        surface.blit(text_obj, (x, y))
+        screen.blit(text_obj, (x, y))
 
     @staticmethod
     def draw_timer_bar(surface, x, y, width, height, elapsed_time, time_limit):

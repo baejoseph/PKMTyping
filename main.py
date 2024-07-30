@@ -2,7 +2,7 @@ import pygame
 import json
 from pokemon import Pokemon
 from session import GameSession
-from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK
+from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK, FONTPATH
 
 # Initialize Pygame
 pygame.init()
@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Poke Typing")
 
 # Font
-font = pygame.font.Font("font/Microsoft Sans Serif.ttf", 30)
+font = pygame.font.Font(FONTPATH, 30)
 large_font = pygame.font.Font("font/MS PGothic.ttf", 92)
 mini_font = pygame.font.Font("font/Microsoft Sans Serif.ttf", 20)
 
@@ -72,6 +72,7 @@ while running:
 
         elif game_session.current_pokemon and event.type == pygame.KEYDOWN:
             game_session.typed_name += event.unicode.upper()
+            game_session.animate_last_letter(event.unicode.upper())
 
             if game_session.current_pokemon.name.startswith(game_session.typed_name):
                 if game_session.typed_name == game_session.current_pokemon.name:

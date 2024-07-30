@@ -13,6 +13,9 @@ LIGHT_GRAY = (220,220,220)
 COMBOCOLOR1 = (255, 165, 0)
 COMBOCOLOR2 = (255, 69, 0)
 
+# Font
+FONTPATH = "font/Microsoft Sans Serif.ttf"
+
 # Pokemon Gens
 GENS = [
     {"id": 1,
