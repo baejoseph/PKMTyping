@@ -2,62 +2,15 @@ import numpy as np
 import pygame
 import random
 from pokemon import Pokemon
+from sprites import Sprites
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE
-
-pkbimg = pygame.image.load("assets/items/poke-ball.png")
-scoreimg = pygame.image.load("assets/items/sapphire.png")
-comboimg = pygame.image.load("assets/items/shiny-stone.png")
-mistakeimg = pygame.image.load("assets/items/red-card.png")
-masterball = pygame.transform.scale(pygame.image.load("assets/items/gen5/master-ball.png"), (25, 25))
-ultraball = pygame.transform.scale(pygame.image.load("assets/items/gen5/ultra-ball.png"), (25, 25))
-greatball = pygame.transform.scale(pygame.image.load("assets/items/gen5/great-ball.png"), (25, 25))
-normalball = pygame.transform.scale(pygame.image.load("assets/items/gen5/poke-ball.png"), (25, 25))
 
 pygame.mixer.init()
 
 # Timer event IDs
 SPAWN_POKEMON_EVENT = pygame.USEREVENT + 1
 MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 2
-JIGGLE_EVENT = pygame.USEREVENT + 4
 SPECIAL_MESSAGE_CLEAR_EVENT = pygame.USEREVENT + 5
-
-def draw_gradient_rect(surface, rect, color1, color2, radius=15):
-    """Draw a vertical gradient rounded rectangle."""
-    gradient_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    for y in range(rect.height):
-        ratio = y / rect.height
-        color = (
-            int(color1[0] * (1 - ratio) + color2[0] * ratio),
-            int(color1[1] * (1 - ratio) + color2[1] * ratio),
-            int(color1[2] * (1 - ratio) + color2[2] * ratio)
-        )
-        pygame.draw.line(gradient_surface, color, (0, y), (rect.width, y))
-
-    # Create a rounded mask
-    mask_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    pygame.draw.rect(mask_surface, (255, 255, 255), mask_surface.get_rect(), border_radius=radius)
-    mask = pygame.mask.from_surface(mask_surface)
-
-    # Apply the mask to the gradient
-    rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    for x in range(rect.width):
-        for y in range(rect.height):
-            if mask.get_at((x, y)):
-                rounded_surface.set_at((x, y), gradient_surface.get_at((x, y)))
-
-    surface.blit(rounded_surface, rect.topleft)
-
-def draw_rounded_rect(surface, rect, color, radius=15, outline_color=None, outline_width=2):
-    """Draw a rounded rectangle with optional outline."""
-    rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    
-    # Adjust the color to include 50% transparency
-    color_with_alpha = (*color, 128)  # Assuming color is (R, G, B)
-    
-    pygame.draw.rect(rounded_surface, color_with_alpha, rounded_surface.get_rect(), border_radius=radius)
-    if outline_color:
-        pygame.draw.rect(rounded_surface, outline_color, rounded_surface.get_rect(), outline_width, border_radius=radius)
-    surface.blit(rounded_surface, rect.topleft)
 
 class GameSession:
     PAUSE_OPTIONS = ["Resume", "Restart", "End Game"]
@@ -241,6 +194,9 @@ class GameSession:
         pygame.mixer.music.unpause()
 
     def end_game(self):
+        if self.combo_count >= 3:
+            self.combo_indices.append((len(self.caught_pokemons) - self.combo_count, len(self.caught_pokemons)))
+        self.current_pokemon = None
         self.game_ended = True
         pygame.mixer.music.stop()
 
@@ -281,7 +237,7 @@ class GameSession:
             rect_height = name_height + 60  # Enough height to cover the name and timer bar
             rect_x = name_x - 10 + walk_x
             rect_y = 220
-            draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), LIGHT_GRAY, radius=15, outline_color=BLACK)
+            self.draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), LIGHT_GRAY, radius=15, outline_color=BLACK)
 
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
@@ -304,7 +260,7 @@ class GameSession:
         rect_width = 400  # Add some padding
         rect_height = 200  # Enough height to cover the name and timer bar
         
-        draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
+        self.draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
                
         cols = 10
         rows = 5
@@ -335,7 +291,7 @@ class GameSession:
                 highlight_rect = pygame.Rect(x1, y + 2, x2 - x1, icon_size + 2)
                 
                 # Draw gradient background
-                draw_gradient_rect(screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
+                self.draw_gradient_rect(screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
 
         for index, (icon, legendary, fast, superfast) in enumerate(self.caught_pokemons):
             col = index % cols
@@ -347,14 +303,14 @@ class GameSession:
             
             # Draw Legendary outline
             if legendary:
-                screen.blit(masterball, (x+offset,y+offset))
+                screen.blit(Sprites.masterball, (x+offset,y+offset))
                         # Draw Super Fast outline
             elif superfast:
-                screen.blit(ultraball, (x+offset,y+offset))
+                screen.blit(Sprites.ultraball, (x+offset,y+offset))
             elif fast:
-                screen.blit(greatball, (x+offset,y+offset))
+                screen.blit(Sprites.greatball, (x+offset,y+offset))
             else:
-                screen.blit(normalball, (x+offset,y+offset))
+                screen.blit(Sprites.normalball, (x+offset,y+offset))
 
     def draw_end_screen(self,screen, font):
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -400,13 +356,13 @@ class GameSession:
         # Draw the score and combo count
         font_height = font.size("Caught")[1]
         
-        screen.blit(pkbimg, (20, 25))
+        screen.blit(Sprites.pkbimg, (20, 25))
         self.draw_text(screen, f"Caught: {self.caught_pokemon_count}", font, BLACK, 50, 20)
-        screen.blit(comboimg, (20, 25 + 1.15*font_height))
+        screen.blit(Sprites.comboimg, (20, 25 + 1.15*font_height))
         self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, 60)
-        screen.blit(scoreimg, (20, 25 + 2.3*font_height))
+        screen.blit(Sprites.scoreimg, (20, 25 + 2.3*font_height))
         self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
-        screen.blit(mistakeimg, (20, 25 + 3.45*font_height))
+        screen.blit(Sprites.mistakeimg, (20, 25 + 3.45*font_height))
         self.draw_text(screen, f"Mistakes: {int(self.total_mistake_count)}", font, BLACK, 50, 140)
     
     
@@ -433,3 +389,43 @@ class GameSession:
     @staticmethod
     def jiggle():
         return random.randint(-5, 5), random.randint(-5, 5)
+
+    @staticmethod
+    def draw_gradient_rect(surface, rect, color1, color2, radius=15):
+        """Draw a vertical gradient rounded rectangle."""
+        gradient_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        for y in range(rect.height):
+            ratio = y / rect.height
+            color = (
+                int(color1[0] * (1 - ratio) + color2[0] * ratio),
+                int(color1[1] * (1 - ratio) + color2[1] * ratio),
+                int(color1[2] * (1 - ratio) + color2[2] * ratio)
+            )
+            pygame.draw.line(gradient_surface, color, (0, y), (rect.width, y))
+
+        # Create a rounded mask
+        mask_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(mask_surface, (255, 255, 255), mask_surface.get_rect(), border_radius=radius)
+        mask = pygame.mask.from_surface(mask_surface)
+
+        # Apply the mask to the gradient
+        rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        for x in range(rect.width):
+            for y in range(rect.height):
+                if mask.get_at((x, y)):
+                    rounded_surface.set_at((x, y), gradient_surface.get_at((x, y)))
+
+        surface.blit(rounded_surface, rect.topleft)
+
+    @staticmethod
+    def draw_rounded_rect(surface, rect, color, radius=15, outline_color=None, outline_width=2):
+        """Draw a rounded rectangle with optional outline."""
+        rounded_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        
+        # Adjust the color to include 50% transparency
+        color_with_alpha = (*color, 128)  # Assuming color is (R, G, B)
+        
+        pygame.draw.rect(rounded_surface, color_with_alpha, rounded_surface.get_rect(), border_radius=radius)
+        if outline_color:
+            pygame.draw.rect(rounded_surface, outline_color, rounded_surface.get_rect(), outline_width, border_radius=radius)
+        surface.blit(rounded_surface, rect.topleft)

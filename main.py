@@ -57,16 +57,19 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+            
         elif game_session.game_ended:
             game_session.handle_end_menu_input(event)
+
+        elif game_session.game_paused:
+            game_session.handle_pause_menu_input(event)            
+        
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             if game_session.game_paused:
                 game_session.unpause_game(current_time)
             else:
                 game_session.pause_game(current_time)
 
-        elif game_session.game_paused:
-            game_session.handle_pause_menu_input(event)
         elif game_session.current_pokemon and event.type == pygame.KEYDOWN:
             game_session.typed_name += event.unicode.upper()
 
