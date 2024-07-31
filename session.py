@@ -353,9 +353,19 @@ class GameSession:
             screen.blit(self.current_pokemon.bg, (SCREEN_WIDTH - SCREEN_HEIGHT//2 - 50, SCREEN_HEIGHT// 2 -50))
 
             # Draw the Pokemon sprite
+            max_pokemon_scale = 2.0
+            scale = 1 + (max_pokemon_scale - 1) * elapsed_time / self.current_pokemon.time_limit
+
+            # Calculate the scaled size of the ball
+            scaled_width = int(self.current_pokemon.sprite.get_width() * scale)
+            scaled_height = int(self.current_pokemon.sprite.get_height() * scale)
+            
+            # Scale the halo effect image
+            scaled_pokemon_sprite = pygame.transform.scale(self.current_pokemon.sprite, (scaled_width, scaled_height))
+
             self.current_pokemon.current_position[0] = SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x
-            self.current_pokemon.current_position[1] = 100 + walk_y + jiggle_y
-            screen.blit(self.current_pokemon.sprite, self.current_pokemon.current_position)
+            self.current_pokemon.current_position[1] = min(100 + walk_y + jiggle_y, 200)
+            screen.blit(scaled_pokemon_sprite, self.current_pokemon.current_position)
 
             # Draw the rounded rectangle around the Pokémon name and timer bar
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
@@ -364,13 +374,13 @@ class GameSession:
             rect_width = name_width + 20  # Add some padding
             rect_height = name_height + 60  # Enough height to cover the name and timer bar
             rect_x = name_x - 10 + walk_x
-            rect_y = 220
+            rect_y = 320
             self.draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), LIGHT_GRAY, radius=15, outline_color=BLACK)
 
             # Draw the Pokemon name in full capital letters
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
             if elapsed_time > NOT_SHOW_NAME_TIME or len(self.typed_name) > 0:
-                self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + walk_x, 240)
+                self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + walk_x, rect_y + 20)
                 
                 # Draw the timer bar just below the typed name
                 self.draw_timer_bar(screen, name_x + walk_x, rect_y + name_height + 20, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
@@ -378,12 +388,12 @@ class GameSession:
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name[:-1]):  # All typed letters except the last one
                 char_x = name_x + font.size(self.current_pokemon.name[:i])[0]
-                self.draw_text(screen, char, font, RED, char_x + walk_x, 240)
+                self.draw_text(screen, char, font, RED, char_x + walk_x, rect_y + 20)
 
             # Animate the last typed letter
             if self.typed_name:
                 last_char_x = name_x + font.size(self.current_pokemon.name[:len(self.typed_name) - 1])[0]
-                self.animate_letter_appearance(screen, font, last_char_x + walk_x, 240)
+                self.animate_letter_appearance(screen, font, last_char_x + walk_x, rect_y + 20)
         else:
             screen.blit(bg_image, (0, 0))
 

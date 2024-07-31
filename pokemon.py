@@ -88,7 +88,7 @@ class Pokemon:
 
     def walk(self):
         self.walk_offset[0] += random.randint(-5, 5)
-        self.walk_offset[1] += random.randint(-5, 5)
+        self.walk_offset[1] += random.randint(-5, 10)
         
     def copy(self):
         # Create a new Pokemon instance without initializing it

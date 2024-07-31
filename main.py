@@ -79,7 +79,7 @@ while running:
             if game_session.current_pokemon.name.startswith(game_session.typed_name):
                 if game_session.typed_name == game_session.current_pokemon.name:
                     game_session.pokemon_caught(game_session.current_pokemon.elapsed_time)
-            else:
+            elif not game_session.transitioning:
                 game_session.pokemon_missed(500)
 
         elif event.type == SPAWN_POKEMON_EVENT:
@@ -103,8 +103,11 @@ while running:
         game_session.update_capture_animation(screen)
 
     # Miss Pokemon due to running out of time
-    if game_session.current_pokemon and game_session.current_pokemon.elapsed_time > game_session.current_pokemon.time_limit:
-            game_session.pokemon_missed(10)
+    if game_session.current_pokemon:
+        if game_session.current_pokemon.elapsed_time > game_session.current_pokemon.time_limit:
+            if not game_session.transitioning:
+                if game_session.animation_state == "IDLE":
+                    game_session.pokemon_missed(10)
 
     # Display messages
     if game_session.game_ended:
