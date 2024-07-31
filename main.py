@@ -36,7 +36,6 @@ TRANSITION_END_EVENT = pygame.USEREVENT + 6
 
 # Main game loop
 game_session = GameSession(pokemon_data, screen, font)
-game_session.spawn_pokemon()
 
 running = True
 
@@ -94,6 +93,7 @@ while running:
             game_session.current_pokemon.walk()
         elif event.type == TRANSITION_END_EVENT:
             game_session.unpause_game(current_time, False)
+            game_session.spawn_pokemon()
 
     if game_session.transitioning:
         game_session.display_region_transition()

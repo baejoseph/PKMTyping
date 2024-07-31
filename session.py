@@ -85,7 +85,7 @@ class GameSession:
     def start_transition(self):
         self.pause_game(pygame.time.get_ticks(), False)
         pygame.mixer.music.play()
-        pygame.time.set_timer(TRANSITION_END_EVENT, TRANSITION_TIME)
+        pygame.time.set_timer(TRANSITION_END_EVENT, TRANSITION_TIME, True)
 
     def display_region_transition(self):
         self.screen.blit(self.bg_image, (0, 0))
@@ -96,11 +96,11 @@ class GameSession:
 
         # Prepare the welcome message
         message = f"Welcome to {GENS[self.current_generation]['name']}!"
-        text_surface = self.font.render(message, True, WHITE)
-        
-        # Center the text on the screen
-        text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        self.screen.blit(text_surface, text_rect)
+
+        x = SCREEN_WIDTH // 2 - self.font.size(message)[0] // 2
+        y = SCREEN_HEIGHT // 2
+
+        self.draw_text(self.screen, message, self.font, BLACK, x, y, outline_color = GRAY, outline_thickness = 1)
 
         pygame.display.flip()
 
@@ -125,20 +125,20 @@ class GameSession:
     def check_progress(self):
         if self.caught_pokemon_count >=50:
                 self.end_game()
-        elif self.current_level * 10 > self.caught_pokemon_count:
-            pass
-        elif self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
-            legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
-            legend_or_fast += np.array([x[2] for x in self.caught_pokemons[-10:]]).sum() / 2
-            if (legend_or_fast >= PASS_MARK) and (self.mistake_count <= MAX_MISTAKE):
-                self.change_generation(self.current_generation + 1)
-            if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 2* MAX_MISTAKE):
-                self.change_generation(max(0, self.current_generation - 1))
-            else:
-                self.change_generation(self.current_generation)
-            self.current_level += 1
-            self.mistake_count = 0
-        self.spawn_pokemon()
+        elif not self.current_level * 10 > self.caught_pokemon_count:
+            if self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
+                legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
+                legend_or_fast += np.array([x[2] for x in self.caught_pokemons[-10:]]).sum() / 2
+                if (legend_or_fast >= PASS_MARK) and (self.mistake_count <= MAX_MISTAKE):
+                    self.change_generation(self.current_generation + 1)
+                if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 2* MAX_MISTAKE):
+                    self.change_generation(max(0, self.current_generation - 1))
+                else:
+                    self.change_generation(self.current_generation)
+                self.current_level += 1
+                self.mistake_count = 0
+        else:
+            self.spawn_pokemon()
 
     def add_message(self, text, howlong=1000):
         self.messages.append({"text": text, "start_time": pygame.time.get_ticks()})
@@ -161,6 +161,7 @@ class GameSession:
     def spawn_pokemon(self):
         pokemon_data_choice = random.choice(self.pokemon_data[GENS[self.current_generation]["indices"][0]:GENS[self.current_generation]["indices"][1]])
         self.current_pokemon = Pokemon(pokemon_data_choice)
+        self.caught_pokemon = None
         self.typed_name = ""
         self.current_pokemon.cry.play()
 
@@ -173,6 +174,8 @@ class GameSession:
         self.halo_timer = 0
 
     def pokemon_caught(self, elapsed_time):
+        self.current_pokemon.is_caught = True
+        self.current_pokemon.caught_time = elapsed_time
         self.caught_pokemon_count += 1
         self.combo_count += 1       
 
@@ -223,13 +226,7 @@ class GameSession:
         
         self.start_capture_animation()
         
-        if self.caught_pokemon_count in [0, 10, 20, 30, 40]:
-            spawn_delay = TRANSITION_TIME + 1000
-        else:
-            spawn_delay = 1000
-        
-        
-        pygame.time.set_timer(SPAWN_POKEMON_EVENT, spawn_delay, True)
+        pygame.time.set_timer(SPAWN_POKEMON_EVENT, 1000, True)
 
     def pokemon_missed(self, wait_time_ms):
         self.add_message("Missed!")
@@ -294,7 +291,6 @@ class GameSession:
                     self.unpause_game(pygame.time.get_ticks())
                 elif GameSession.PAUSE_OPTIONS[self.selected_pause_option] == "Restart":
                     self.reset_game(self.pokemon_data)
-                    self.spawn_pokemon()
                 elif GameSession.PAUSE_OPTIONS[self.selected_pause_option] == "End Game":
                     self.end_game()
 
@@ -365,7 +361,9 @@ class GameSession:
 
             self.current_pokemon.current_position[0] = SCREEN_WIDTH // 2 - self.current_pokemon.sprite.get_width() // 2 + walk_x +  jiggle_x
             self.current_pokemon.current_position[1] = min(100 + walk_y + jiggle_y, 200)
-            screen.blit(scaled_pokemon_sprite, self.current_pokemon.current_position)
+            
+            if not self.caught_pokemon or not self.caught_pokemon.ball_hit:
+                screen.blit(scaled_pokemon_sprite, self.current_pokemon.current_position)
 
             # Draw the rounded rectangle around the Pokémon name and timer bar
             name_x = SCREEN_WIDTH // 2 - font.size(self.current_pokemon.name)[0] // 2
@@ -383,7 +381,8 @@ class GameSession:
                 self.draw_text(screen, self.current_pokemon.name, font, BLACK, name_x + walk_x, rect_y + 20)
                 
                 # Draw the timer bar just below the typed name
-                self.draw_timer_bar(screen, name_x + walk_x, rect_y + name_height + 20, font.size(self.current_pokemon.name)[0], 15, elapsed_time, self.current_pokemon.time_limit)
+                time_to_draw = self.current_pokemon.caught_time if self.current_pokemon.is_caught else elapsed_time
+                self.draw_timer_bar(screen, name_x + walk_x, rect_y + name_height + 20, font.size(self.current_pokemon.name)[0], 15, time_to_draw, self.current_pokemon.time_limit)
 
             # Draw each typed letter exactly below each corresponding letter of the Pokemon name
             for i, char in enumerate(self.typed_name[:-1]):  # All typed letters except the last one
@@ -503,7 +502,6 @@ class GameSession:
             elif event.key == pygame.K_RETURN:
                 if GameSession.END_OPTIONS[self.selected_end_option] == "Restart":
                     self.reset_game(self.pokemon_data)
-                    self.spawn_pokemon()
                 elif GameSession.END_OPTIONS[self.selected_end_option] == "Quit":
                     pygame.quit()
                     exit()
@@ -551,6 +549,8 @@ class GameSession:
 
             # Check if the ball reached the target
             if abs(self.ball_position[0] - self.ball_target[0]) < 5:
+                if self.caught_pokemon:
+                    self.caught_pokemon.ball_hit = True
                 self.animation_state = "HALO"
                 self.halo_timer = pygame.time.get_ticks()
 

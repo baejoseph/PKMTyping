@@ -23,6 +23,9 @@ class Pokemon:
         self.bg = self.load_bg_image()
         self.cry = self.load_sound()
         self.name_sound = Pokemon.name_sounds.get(self.id, None)
+        self.is_caught = False
+        self.caught_time = None
+        self.ball_hit = False
         self.legendary = self.is_legendary(data["base"])
         self.is_fast = False
         self.is_super_fast = False
