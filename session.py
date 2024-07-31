@@ -50,7 +50,7 @@ class GameSession:
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
         self.jiggle_offset = [0, 0]
         self.ball_sprite = pygame.image.load("assets/items/gen5/poke-ball.png")  # Load ball sprite
-        self.halo_effect = pygame.image.load("assets/items/gen5/adamant-orb.png")  # Load halo effect sprite
+        self.halo_effect = pygame.image.load("assets/halo01.png")  # Load halo effect sprite
         self.animation_state = "IDLE"  # Track the state of the animation
         self.ball_position = [0, 0]  # Initial ball position
         self.ball_target = [0, 0]  # Target position for the ball
@@ -547,7 +547,7 @@ class GameSession:
         elif self.animation_state == "HALO":
             # Calculate the time elapsed since the halo animation started
             elapsed = pygame.time.get_ticks() - self.halo_timer
-            halo_effect_duration = 400
+            halo_effect_duration = 300
             halo_offset_x = 40  # Example offset values
             halo_offset_y = 60
             halo_scale_max = 7.0
