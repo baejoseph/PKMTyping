@@ -79,7 +79,9 @@ class Pokemon:
         return pygame.mixer.Sound(os.path.join('assets/cries', f"{self.id}.ogg"))
 
     def is_legendary(self, base_stats):
-        return base_stats["HP"] + base_stats["Attack"] + base_stats["Sp. Attack"] > LEGENDARY_CUTOFF
+        BST = base_stats["HP"] + base_stats["Attack"] + base_stats["Sp. Attack"]
+        BST += base_stats["Defense"] + base_stats["Speed"] + base_stats["Sp. Defense"]
+        return BST >= LEGENDARY_CUTOFF
 
     def get_time_limit(self, base_stats):
         return LEGENDARY_POKEMON_CATCH_TIME if self.is_legendary(base_stats) else NORMAL_POKEMON_CATCH_TIME
