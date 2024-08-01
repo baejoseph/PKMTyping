@@ -64,6 +64,8 @@ class GameSession:
         self.current_level = 1
         self.max_region_reached = GENS[self.current_generation]['name']
         self.bg_image = pygame.image.load(f"assets/background/{GENS[self.current_generation]['bg']}")
+        self.caught_pokemon_surface = None
+        self.should_update_caught_pokemon_surface = True
         pygame.mixer.music.load(f"assets/music/{GENS[self.current_generation]['music']}")
         self.start_transition()
 
@@ -100,7 +102,7 @@ class GameSession:
         x = SCREEN_WIDTH // 2 - self.font.size(message)[0] // 2
         y = SCREEN_HEIGHT // 2
 
-        self.draw_text(self.screen, message, self.font, BLACK, x, y, outline_color = GRAY, outline_thickness = 1)
+        self.draw_text(self.screen, message, self.font, BLACK, x, y, outline_color = WHITE, outline_thickness = 1)
 
         pygame.display.flip()
 
@@ -223,7 +225,7 @@ class GameSession:
                                             self.caught_pokemon.legendary,
                                             self.caught_pokemon.is_fast, 
                                             self.caught_pokemon.is_super_fast))
-        
+        self.should_update_caught_pokemon_surface = True
         self.start_capture_animation()
         
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, 1000, True)
@@ -411,21 +413,18 @@ class GameSession:
         
         return x,y
 
-    def draw_caught_pokemon_icons(self, screen, rect_x = 10, rect_y = SCREEN_HEIGHT - 210 ):
-        # Draw the box around it
+    def update_caught_pokemon_surface(self):
+        # Create an off-screen surface with the same size as the caught Pokémon box
+        rect_width = 400
+        rect_height = 200
+        self.caught_pokemon_surface = pygame.Surface((rect_width, rect_height), pygame.SRCALPHA)
         
-        rect_width = 400  # Add some padding
-        rect_height = 200  # Enough height to cover the name and timer bar
-        
-        self.draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
-               
         cols = 10
-        rows = 5
         icon_size = 32
         padding = 5
         offset = 21
-        x_start = 10 + rect_x
-        y_start = 5 + rect_y
+        x_start = 10
+        y_start = 5
 
         # Include the current combo if it exists and is of length 3 or more
         combo_indices = self.combo_indices.copy()
@@ -446,28 +445,41 @@ class GameSession:
                 x2 = x_start + row_end_col * (icon_size + padding) + icon_size + 2
                 y = y_start + row * (icon_size + padding) - 2
                 highlight_rect = pygame.Rect(x1, y + 2, x2 - x1, icon_size + 2)
-                
+
                 # Draw gradient background
-                self.draw_gradient_rect(screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
+                self.draw_gradient_rect(self.caught_pokemon_surface, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
 
         for index, (icon, legendary, fast, superfast) in enumerate(self.caught_pokemons):
             col = index % cols
             row = index // cols
             x = x_start + col * (icon_size + padding)
             y = y_start + row * (icon_size + padding)
-    
-            screen.blit(icon, (x, y))
-            
+
+            self.caught_pokemon_surface.blit(icon, (x, y))
+
             # Draw Legendary outline
             if legendary:
-                screen.blit(Sprites.masterball, (x+offset,y+offset))
-                        # Draw Super Fast outline
+                self.caught_pokemon_surface.blit(Sprites.masterball, (x + offset, y + offset))
             elif superfast:
-                screen.blit(Sprites.ultraball, (x+offset,y+offset))
+                self.caught_pokemon_surface.blit(Sprites.ultraball, (x + offset, y + offset))
             elif fast:
-                screen.blit(Sprites.greatball, (x+offset,y+offset))
+                self.caught_pokemon_surface.blit(Sprites.greatball, (x + offset, y + offset))
             else:
-                screen.blit(Sprites.normalball, (x+offset,y+offset))
+                self.caught_pokemon_surface.blit(Sprites.normalball, (x + offset, y + offset))
+
+        self.should_update_caught_pokemon_surface = False
+
+    def draw_caught_pokemon_icons(self, screen, rect_x=10, rect_y=SCREEN_HEIGHT - 210):
+        if self.should_update_caught_pokemon_surface:
+            self.update_caught_pokemon_surface()
+
+        # Draw the box around it
+        rect_width = 400  # Add some padding
+        rect_height = 200  # Enough height to cover the name and timer bar
+        self.draw_rounded_rect(screen, pygame.Rect(rect_x, rect_y, rect_width, rect_height), WHITE, radius=15, outline_color=BLACK)
+
+        # Blit the off-screen surface containing the caught Pokémon icons
+        screen.blit(self.caught_pokemon_surface, (rect_x, rect_y))
 
     def draw_end_screen(self,screen, font):
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
