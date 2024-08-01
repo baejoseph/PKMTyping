@@ -44,7 +44,7 @@ class Pokemon:
         return pygame.image.load(os.path.join('assets/icons', f"{self.id}.png"))
 
     def load_bg_image(self, target_size=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), gray_alpha=0.9):
-        original_image = pygame.image.load(os.path.join('assets/sugimori', f"{self.id}.png")).convert_alpha()
+        original_image = pygame.image.load(os.path.join('assets/sugimori_mini', f"{self.id}.png")).convert_alpha()
         orig_width, orig_height = original_image.get_size()
         aspect_ratio = orig_width / orig_height
         if aspect_ratio > (target_size[0] / target_size[1]):
