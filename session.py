@@ -281,6 +281,9 @@ class GameSession:
         self.current_pokemon = None
         self.game_ended = True
         pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+        pygame.mixer.music.load(f"assets/music/Score.mp3")
+        pygame.mixer.music.play()
 
     def handle_pause_menu_input(self,event):
         if event.type == pygame.KEYDOWN:
