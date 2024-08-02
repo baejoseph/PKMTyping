@@ -21,8 +21,8 @@ pygame.display.set_caption("Poke Typing")
 
 # Font
 font = pygame.font.Font(resource_path(FONTPATH), 30)
-large_font = pygame.font.Font(resource_path("font/MS PGothic.ttf"), 92)
-mini_font = pygame.font.Font(resource_path("font/Microsoft Sans Serif.ttf"), 20)
+large_font = pygame.font.Font(resource_path("assets/font/MS PGothic.ttf"), 92)
+mini_font = pygame.font.Font(resource_path("assets/font/Microsoft Sans Serif.ttf"), 20)
 
 # Clock
 clock = pygame.time.Clock()

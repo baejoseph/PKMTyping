@@ -61,9 +61,9 @@ class Pokemon:
         final_image.blit(gray_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         
         # Render the Korean and Japanese name
-        japanese_font = pygame.font.Font(resource_path("font/MS PGothic.ttf"), 72)  # Adjust the font size as needed
-        korean_font = pygame.font.Font(resource_path("font/UnGungseo.ttf"), 72)  # Adjust the font size as needed
-        id_font = pygame.font.Font(resource_path("font/Courier New.ttf"), 62)
+        japanese_font = pygame.font.Font(resource_path("assets/font/MS PGothic.ttf"), 72)  # Adjust the font size as needed
+        korean_font = pygame.font.Font(resource_path("assets/font/UnGungseo.ttf"), 72)  # Adjust the font size as needed
+        id_font = pygame.font.Font(resource_path("assets/font/Courier New.ttf"), 62)
         
         japanese_surface = japanese_font.render(self.japanese_name, True, (244, 244, 244))  # Stylize the text as needed (e.g., color)
         korean_surface = korean_font.render(self.korean_name, True, (244, 244, 244))  # Stylize the text as needed (e.g., color)

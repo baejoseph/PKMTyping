@@ -1,11 +1,11 @@
 from setuptools import setup
 
 APP = ['main.py']  # Replace with your main script
-DATA_FILES = ['assets', 'data', 'font']  # Add other directories or files needed
+DATA_FILES = ['assets', 'data']  # Add other directories or files needed
 OPTIONS = {
     'argv_emulation': True,
     'packages': ['pygame', 'numpy'],
-    'includes': ['pokemon', 'session', 'config', 'sprites'],  # Include other modules used
+    'includes': ['pokemon', 'session', 'config', 'sprites', 'utils'],  # Include other modules used
     'plist': {
         'CFBundleName': 'Poke Typing',  # The name of the app
         'CFBundleIconFile': 'icon.icns',  # The name of the icon file

@@ -16,7 +16,7 @@ COMBOCOLOR1 = (255, 165, 0)
 COMBOCOLOR2 = (255, 69, 0)
 
 # Font
-FONTPATH = "font/Microsoft Sans Serif.ttf"
+FONTPATH = "assets/font/Microsoft Sans Serif.ttf"
 
 # Pokemon Gens
 GENS = [

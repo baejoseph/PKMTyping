@@ -6,7 +6,7 @@ a = Analysis(
     ['main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[('assets/', 'assets/'), ('data/', 'data'), ('font/', 'font/')],
+    datas=[('assets/', 'assets/'), ('data/', 'data')],
     hiddenimports=['config', 'session', 'pokemon', 'sprites'],
     hookspath=[],
     runtime_hooks=[],
