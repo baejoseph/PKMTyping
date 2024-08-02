@@ -11,7 +11,7 @@ OPTIONS = {
         'CFBundleIconFile': 'icon.icns',  # The name of the icon file
     },
     'iconfile': 'icon.icns',  # The icon file to use
-    'frameworks': ['/usr/local/anaconda3/envs/pokemon-typing/lib/libffi.8.dylib']
+    'frameworks': ['/usr//local/Cellar/libffi/3.4.6/lib/libffi.8.dylib']
 }
 
 setup(
