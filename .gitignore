@@ -4,6 +4,5 @@ build/
 *.dmg
 stats.py
 icon.iconset/
-main.spec
 .eggs/
 .DS_Store
