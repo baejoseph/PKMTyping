@@ -27,7 +27,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    onefile=True
+    onefile=True,
     icon='icon.ico'
 )
 coll = COLLECT(
