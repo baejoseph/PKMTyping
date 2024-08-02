@@ -4,6 +4,7 @@ import random
 from pokemon import Pokemon
 from sprites import Sprites
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE, FONTPATH, TRANSITION_TIME
+from utils import resource_path
 
 pygame.mixer.init()
 
@@ -43,14 +44,14 @@ class GameSession:
         self.current_animating_char = ''
         self.is_correct = False
         self.start_time = pygame.time.get_ticks()
-        self.caught_sound = pygame.mixer.Sound('assets/sounds/paafekuto.ogg')
-        self.miss_sound = pygame.mixer.Sound('assets/sounds/daijoubu.ogg')
-        self.keystroke_sound = pygame.mixer.Sound('assets/sounds/clack.wav')
+        self.caught_sound = pygame.mixer.Sound(resource_path('assets/sounds/paafekuto.ogg'))
+        self.miss_sound = pygame.mixer.Sound(resource_path('assets/sounds/daijoubu.ogg'))
+        self.keystroke_sound = pygame.mixer.Sound(resource_path('assets/sounds/clack.wav'))
         self.messages = []
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
         self.jiggle_offset = [0, 0]
-        self.ball_sprite = pygame.image.load("assets/items/gen5/poke-ball.png")  # Load ball sprite
-        self.halo_effect = pygame.image.load("assets/halo01.png")  # Load halo effect sprite
+        self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/poke-ball.png"))  # Load ball sprite
+        self.halo_effect = pygame.image.load(resource_path("assets/halo01.png"))  # Load halo effect sprite
         self.animation_state = "IDLE"  # Track the state of the animation
         self.ball_position = [0, 0]  # Initial ball position
         self.ball_target = [0, 0]  # Target position for the ball
@@ -63,17 +64,17 @@ class GameSession:
         self.current_generation = 0
         self.current_level = 1
         self.max_region_reached = GENS[self.current_generation]['name']
-        self.bg_image = pygame.image.load(f"assets/background/{GENS[self.current_generation]['bg']}")
+        self.bg_image = pygame.image.load(resource_path(f"assets/background/{GENS[self.current_generation]['bg']}"))
         self.caught_pokemon_surface = None
         self.should_update_caught_pokemon_surface = True
-        pygame.mixer.music.load(f"assets/music/{GENS[self.current_generation]['music']}")
+        pygame.mixer.music.load(resource_path(f"assets/music/{GENS[self.current_generation]['music']}"))
         self.start_transition()
 
     def change_generation(self, new_generation):
-        self.bg_image = pygame.image.load(f"assets/background/{GENS[new_generation]['bg']}")
+        self.bg_image = pygame.image.load(resource_path(f"assets/background/{GENS[new_generation]['bg']}"))
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
-        pygame.mixer.music.load(f"assets/music/{GENS[new_generation]['music']}")
+        pygame.mixer.music.load(resource_path(f"assets/music/{GENS[new_generation]['music']}"))
         if new_generation > self.current_generation:
             self.add_message(f"Excellent! {GENS[new_generation]['name']} unlocked!", 5000)
             self.max_region_reached = GENS[new_generation]['name']
@@ -193,13 +194,13 @@ class GameSession:
         
         # Start capture animation
         if self.current_pokemon.legendary:
-            self.ball_sprite = pygame.image.load("assets/items/gen5/master-ball.png")
+            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/master-ball.png"))
         elif self.current_pokemon.is_super_fast:
-            self.ball_sprite = pygame.image.load("assets/items/gen5/ultra-ball.png")
+            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/ultra-ball.png"))
         elif self.current_pokemon.is_fast:
-            self.ball_sprite = pygame.image.load("assets/items/gen5/great-ball.png")
+            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/great-ball.png"))
         else:
-            self.ball_sprite = pygame.image.load("assets/items/gen5/poke-ball.png")
+            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/poke-ball.png"))
         
         # Add messages
         if self.current_pokemon.legendary:
@@ -282,7 +283,7 @@ class GameSession:
         self.game_ended = True
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
-        pygame.mixer.music.load(f"assets/music/Score.mp3")
+        pygame.mixer.music.load(resource_path(f"assets/music/Score.mp3"))
         pygame.mixer.music.play()
 
     def handle_pause_menu_input(self,event):
@@ -332,7 +333,7 @@ class GameSession:
 
         # Create a new font object with the scaled size
         scaled_font_size = int(font.get_height() * scale)
-        scaled_font = pygame.font.Font(FONTPATH, scaled_font_size)
+        scaled_font = pygame.font.Font(resource_path(FONTPATH), scaled_font_size)
 
         # Render the character with the scaled font
         text_surface = scaled_font.render(self.current_animating_char, True, BLACK)

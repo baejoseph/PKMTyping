@@ -3,12 +3,13 @@ import json
 from pokemon import Pokemon
 from session import GameSession
 from config import SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, BLACK, FONTPATH, TRANSITION_TIME
+from utils import resource_path
 
 # Initialize Pygame
 pygame.init()
 
 # Load JSON data
-with open("data/pokemon_data_updated.json", "r", encoding="utf-8") as file:
+with open(resource_path("data/pokemon_data_updated.json"), "r", encoding="utf-8") as file:
     pokemon_data = json.load(file)
 
 # Load all name sounds into memory
@@ -19,9 +20,9 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Poke Typing")
 
 # Font
-font = pygame.font.Font(FONTPATH, 30)
-large_font = pygame.font.Font("font/MS PGothic.ttf", 92)
-mini_font = pygame.font.Font("font/Microsoft Sans Serif.ttf", 20)
+font = pygame.font.Font(resource_path(FONTPATH), 30)
+large_font = pygame.font.Font(resource_path("font/MS PGothic.ttf"), 92)
+mini_font = pygame.font.Font(resource_path("font/Microsoft Sans Serif.ttf"), 20)
 
 # Clock
 clock = pygame.time.Clock()

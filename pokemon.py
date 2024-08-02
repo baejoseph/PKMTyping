@@ -1,13 +1,14 @@
 import pygame
 import random
 import os
+from utils import resource_path
 from config import LEGENDARY_CUTOFF, NORMAL_POKEMON_CATCH_TIME, LEGENDARY_POKEMON_CATCH_TIME, SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Pokemon:
     name_sounds = {}
 
     @classmethod
-    def load_name_sounds(cls, sounds_folder="assets/names"):
+    def load_name_sounds(cls, sounds_folder=resource_path("assets/names")):
         for filename in os.listdir(sounds_folder):
             if filename.endswith(".wav"):
                 id = int(filename.split('-')[0])
@@ -38,13 +39,13 @@ class Pokemon:
         self.total_paused_time = 0
 
     def load_image(self):
-        return pygame.image.load(os.path.join('assets/sprites', f"{self.id}.png"))
+        return pygame.image.load(resource_path(os.path.join('assets/sprites', f"{self.id}.png")))
 
     def load_icon(self):
-        return pygame.image.load(os.path.join('assets/icons', f"{self.id}.png"))
+        return pygame.image.load(resource_path(os.path.join('assets/icons', f"{self.id}.png")))
 
     def load_bg_image(self, target_size=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), gray_alpha=0.9):
-        original_image = pygame.image.load(os.path.join('assets/sugimori_mini', f"{self.id}.png")).convert_alpha()
+        original_image = pygame.image.load(resource_path(os.path.join('assets/sugimori_mini', f"{self.id}.png"))).convert_alpha()
         orig_width, orig_height = original_image.get_size()
         aspect_ratio = orig_width / orig_height
         if aspect_ratio > (target_size[0] / target_size[1]):
@@ -60,9 +61,9 @@ class Pokemon:
         final_image.blit(gray_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         
         # Render the Korean and Japanese name
-        japanese_font = pygame.font.Font("font/MS PGothic.ttf", 72)  # Adjust the font size as needed
-        korean_font = pygame.font.Font("font/UnGungseo.ttf", 72)  # Adjust the font size as needed
-        id_font = pygame.font.Font("font/Courier New.ttf", 62)
+        japanese_font = pygame.font.Font(resource_path("font/MS PGothic.ttf"), 72)  # Adjust the font size as needed
+        korean_font = pygame.font.Font(resource_path("font/UnGungseo.ttf"), 72)  # Adjust the font size as needed
+        id_font = pygame.font.Font(resource_path("font/Courier New.ttf"), 62)
         
         japanese_surface = japanese_font.render(self.japanese_name, True, (244, 244, 244))  # Stylize the text as needed (e.g., color)
         korean_surface = korean_font.render(self.korean_name, True, (244, 244, 244))  # Stylize the text as needed (e.g., color)
@@ -79,7 +80,7 @@ class Pokemon:
         return final_image
 
     def load_sound(self):
-        return pygame.mixer.Sound(os.path.join('assets/cries', f"{self.id}.ogg"))
+        return pygame.mixer.Sound(resource_path(os.path.join('assets/cries', f"{self.id}.ogg")))
 
     def is_legendary(self, base_stats):
         BST = base_stats["HP"] + base_stats["Attack"] + base_stats["Sp. Attack"]
