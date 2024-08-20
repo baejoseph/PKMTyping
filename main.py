@@ -69,7 +69,7 @@ while running:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             if game_session.game_paused:
                 game_session.unpause_game(current_time)
-            else:
+            elif not game_session.transitioning:
                 game_session.pause_game(current_time)
 
         elif game_session.current_pokemon and event.type == pygame.KEYDOWN:

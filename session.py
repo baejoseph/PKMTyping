@@ -3,7 +3,7 @@ import pygame
 import random
 from pokemon import Pokemon
 from sprites import Sprites
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE, FONTPATH, TRANSITION_TIME
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, NOT_SHOW_NAME_TIME, REWARD_MAP, WHITE, BLACK, GREEN, AMBER, RED, GRAY, LIGHT_GRAY, COMBOCOLOR1, COMBOCOLOR2, GENS, PASS_MARK, MAX_MISTAKE, FONTPATH, TRANSITION_TIME, ARROW_TRANSITION_TIME
 from utils import resource_path
 
 pygame.mixer.init()
@@ -62,6 +62,7 @@ class GameSession:
         self.combo_indices = []
         self.reward_map = REWARD_MAP
         self.current_generation = 0
+        self.generations = []
         self.current_level = 1
         self.max_region_reached = GENS[self.current_generation]['name']
         self.bg_image = pygame.image.load(resource_path(f"assets/background/{GENS[self.current_generation]['bg']}"))
@@ -86,26 +87,75 @@ class GameSession:
         self.start_transition()
 
     def start_transition(self):
+        if self.current_level > len(self.generations):
+            self.generations.append(self.current_generation)
         self.pause_game(pygame.time.get_ticks(), False)
+        self.transition_start_time = pygame.time.get_ticks()
         pygame.mixer.music.play()
         pygame.time.set_timer(TRANSITION_END_EVENT, TRANSITION_TIME, True)
 
     def display_region_transition(self):
         self.screen.blit(self.bg_image, (0, 0))
-        # Create a semi-transparent overlay
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((50, 50, 50, 200))  # Grey with 200 alpha for transparency
-        self.screen.blit(overlay, (0, 0))
 
-        # Prepare the welcome message
-        message = f"Welcome to {GENS[self.current_generation]['name']}!"
+        # Adjust transition timing
+        transition_timer = pygame.time.get_ticks() - self.transition_start_time
+        arrow_elapsed_time = min(transition_timer / (ARROW_TRANSITION_TIME / 2), 1)  # Arrow transition in the first half
+        message_elapsed_time = min(transition_timer / ARROW_TRANSITION_TIME, 1)  # Message duration is the full time
 
-        x = SCREEN_WIDTH // 2 - self.font.size(message)[0] // 2
-        y = SCREEN_HEIGHT // 2
+        arrow_thickness = SCREEN_HEIGHT // 6  # Thickness of the arrow (1/6 of screen height)
 
-        self.draw_text(self.screen, message, self.font, BLACK, x, y, outline_color = WHITE, outline_thickness = 1)
+        # Determine the start position of the arrow
+        start_y = SCREEN_HEIGHT // 2 - arrow_thickness // 2
+        start_x = 0
+
+        highlight_rect = pygame.Rect(start_x, start_y, int(SCREEN_WIDTH * arrow_elapsed_time), arrow_thickness)
+
+        # Draw gradient rectangle
+        self.draw_gradient_rect(self.screen, highlight_rect, COMBOCOLOR1, COMBOCOLOR2)
+        
+        # Prepare the textual animation (same as before)
+        if transition_timer < ARROW_TRANSITION_TIME:
+            if len(self.generations) > 1:
+                if self.generations[-1] > self.generations[-2]:
+                    message = "You are moving up to the next region!"
+                    scale = 1.0 + 0.5 * message_elapsed_time  # Scale from 1.0 to 1.5
+                elif self.generations[-1] < self.generations[-2]:
+                    message = "You are moving down a region."
+                    scale = 1.5 - 0.5 * message_elapsed_time  # Scale from 1.5 to 1.0
+                else:
+                    message = "You are staying in the same region."
+                    scale = 1.0  # No scaling
+            else:
+                # First generation or no change
+                message = "Starting your journey!"
+                scale = 1.0  # No scaling
+
+            scaled_font_size = int(self.font.get_height() * scale)
+            scaled_font = pygame.font.Font(resource_path(FONTPATH), scaled_font_size)
+
+            x = SCREEN_WIDTH // 2 - scaled_font.size(message)[0] // 2
+            y = SCREEN_HEIGHT // 2 - scaled_font.size(message)[1] // 2
+            
+            self.draw_text(self.screen, message, scaled_font, BLACK, x, y, outline_color=WHITE, outline_thickness=1)
+
+        # Prepare the welcome message for the next region
+        if transition_timer > ARROW_TRANSITION_TIME:
+            
+            normalised_time = (transition_timer - ARROW_TRANSITION_TIME ) / (TRANSITION_TIME - ARROW_TRANSITION_TIME)
+            
+            scale = max(1, 3.0 * (1 - 3 * normalised_time))  # Quickly Scale from 3.0 to 1.0
+            scaled_font_size = int(self.font.get_height() * scale)
+            scaled_font = pygame.font.Font(resource_path(FONTPATH), scaled_font_size)
+            
+            message = f"Welcome to {GENS[self.current_generation]['name']}!"
+
+            x = SCREEN_WIDTH // 2 - scaled_font.size(message)[0] // 2
+            y = SCREEN_HEIGHT // 2  - scaled_font.size(message)[1] // 2
+
+            self.draw_text(self.screen, message, scaled_font, BLACK, x, y, outline_color=WHITE, outline_thickness=1)
 
         pygame.display.flip()
+
 
     def update_time(self, time):
         if not self.game_paused:
@@ -132,13 +182,13 @@ class GameSession:
             if self.caught_pokemon_count and self.caught_pokemon_count % 10 == 0:
                 legend_or_fast = np.array([x[1] or x[3] for x in self.caught_pokemons[-10:]]).sum()
                 legend_or_fast += np.array([x[2] for x in self.caught_pokemons[-10:]]).sum() / 2
+                self.current_level += 1
                 if (legend_or_fast >= PASS_MARK) and (self.mistake_count <= MAX_MISTAKE):
                     self.change_generation(self.current_generation + 1)
                 if (legend_or_fast < PASS_MARK/2) or (self.mistake_count > 2* MAX_MISTAKE):
                     self.change_generation(max(0, self.current_generation - 1))
                 else:
                     self.change_generation(self.current_generation)
-                self.current_level += 1
                 self.mistake_count = 0
         else:
             self.spawn_pokemon()
