@@ -290,6 +290,8 @@ class GameSession:
         self.total_mistake_count += 1
         self.miss_sound.play()
         self.current_pokemon = None
+        if self.mistake_count > MAX_MISTAKE:
+            self.end_game()
         pygame.time.set_timer(SPAWN_POKEMON_EVENT, wait_time_ms, True)
 
     def draw_pause_menu(self, screen, font):
