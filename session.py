@@ -50,8 +50,8 @@ class GameSession:
         self.messages = []
         self.special_message = {"text": "", "start_time": pygame.time.get_ticks()}
         self.jiggle_offset = [0, 0]
-        self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/poke-ball.png"))  # Load ball sprite
-        self.halo_effect = pygame.image.load(resource_path("assets/halo01.png"))  # Load halo effect sprite
+        self.ball_sprite = pygame.image.load(resource_path("assets/balls/poke-ball.png"))  # Load ball sprite
+        self.halo_effect = pygame.image.load(resource_path("assets/balls/sticky-barb.png"))  # Load halo effect sprite
         self.animation_state = "IDLE"  # Track the state of the animation
         self.ball_position = [0, 0]  # Initial ball position
         self.ball_target = [0, 0]  # Target position for the ball
@@ -244,13 +244,13 @@ class GameSession:
         
         # Start capture animation
         if self.current_pokemon.legendary:
-            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/master-ball.png"))
+            self.ball_sprite = pygame.image.load(resource_path("assets/balls/master-ball.png"))
         elif self.current_pokemon.is_super_fast:
-            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/ultra-ball.png"))
+            self.ball_sprite = pygame.image.load(resource_path("assets/balls/ultra-ball.png"))
         elif self.current_pokemon.is_fast:
-            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/great-ball.png"))
+            self.ball_sprite = pygame.image.load(resource_path("assets/balls/great-ball.png"))
         else:
-            self.ball_sprite = pygame.image.load(resource_path("assets/items/gen5/poke-ball.png"))
+            self.ball_sprite = pygame.image.load(resource_path("assets/balls/poke-ball.png"))
         
         # Add messages
         if self.current_pokemon.legendary:
@@ -548,7 +548,7 @@ class GameSession:
         self.draw_rounded_rect(screen, menu_rect, WHITE, radius=15, outline_color=BLACK)
 
         # Display Stats
-        self.draw_text(screen, f"SCORE: {round(self.total_score)}", font, BLACK, menu_rect.x + 50, menu_rect.y + 20 )
+        self.draw_text(screen, f"SCORE: {round(self.total_score):,}", font, BLACK, menu_rect.x + 50, menu_rect.y + 20 )
         self.draw_text(screen, f"MISTAKES: {self.total_mistake_count}", font, BLACK, menu_rect.x + 50, menu_rect.y + 50 )
         max_combo_length = max(end - start for start, end in self.combo_indices) if self.combo_indices else 0
         self.draw_text(screen, f"MAX COMBO: {max_combo_length}", font, BLACK, menu_rect.x + 50, menu_rect.y + 80 )
@@ -579,14 +579,21 @@ class GameSession:
         # Draw the score and combo count
         font_height = font.size("Caught")[1]
         
-        screen.blit(Sprites.pkbimg, (20, 25))
-        self.draw_text(screen, f"Caught: {self.caught_pokemon_count}", font, BLACK, 50, 20)
-        screen.blit(Sprites.comboimg, (20, 25 + 1.15*font_height))
-        self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, 60)
-        screen.blit(Sprites.scoreimg, (20, 25 + 2.3*font_height))
-        self.draw_text(screen, f"Score: {int(self.total_score)}", font, BLACK, 50, 100)
-        screen.blit(Sprites.mistakeimg, (20, 25 + 3.45*font_height))
-        self.draw_text(screen, f"Mistakes: {int(self.mistake_count)} / {MAX_MISTAKE}", font, BLACK, 50, 140)
+        initial_spacing = 20
+        spacing = 40
+        initial_spacing_icon = 25
+        spacing_gap = 1.15
+        
+        screen.blit(Sprites.pkbimg, (20, initial_spacing_icon))
+        self.draw_text(screen, f"Caught: {self.caught_pokemon_count}", font, BLACK, 50, initial_spacing)
+        screen.blit(Sprites.comboimg, (20, initial_spacing_icon + spacing_gap*font_height))
+        self.draw_text(screen, f"Combo: {self.combo_count}", font, BLACK, 50, initial_spacing + spacing)
+        screen.blit(Sprites.scoreimg, (20, initial_spacing_icon + 2*spacing_gap*font_height))
+        self.draw_text(screen, f"Score: {int(self.total_score):,}", font, BLACK, 50, initial_spacing + spacing * 2)
+        screen.blit(Sprites.mistakeimg, (20, initial_spacing_icon + 3*spacing_gap*font_height))
+        self.draw_text(screen, f"Mistakes: {int(self.mistake_count)} / {MAX_MISTAKE}", font, BLACK, 50, initial_spacing + spacing * 3)
+        screen.blit(Sprites.bikeimg, (20, initial_spacing_icon + 4*spacing_gap*font_height))
+        self.draw_text(screen, f"Region: {GENS[self.current_generation]['name']}", font, BLACK, 50, initial_spacing + spacing * 4)
     
     def update_capture_animation(self, screen):
         if self.animation_state == "PARABOLIC":
