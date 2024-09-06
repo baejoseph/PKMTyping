@@ -9,5 +9,5 @@ class Sprites:
     masterball = pygame.transform.scale(pygame.image.load(resource_path("assets/balls/master-ball.png")), (25, 25))
     ultraball = pygame.transform.scale(pygame.image.load(resource_path("assets/balls/ultra-ball.png")), (25, 25))
     greatball = pygame.transform.scale(pygame.image.load(resource_path("assets/balls/great-ball.png")), (25, 25))
-    normalball = pygame.transform.scale(pygame.image.load(resource_path("assets/balls/poke-ball.png")), (25, 25))
+    normalball = pygame.transform.scale(pygame.image.load(resource_path("assets/balls/poke-ball.png")), (30, 30))
     bikeimg = pygame.transform.scale(pygame.image.load(resource_path("assets/balls/bicycle.png")), (20, 20))
