@@ -600,7 +600,7 @@ class GameSession:
             
             # Horizontal movement towards Pokémon
             horizontal_distance = self.ball_target[0] - self.ball_start[0]
-            self.ball_position[0] += horizontal_distance / 40  # Adjust denominator for speed
+            self.ball_position[0] += horizontal_distance / 20  # Adjust denominator for speed
 
             # Calculate height for the parabola
             peak_height = (self.ball_target[1] - self.ball_start[1]) / 2 - 100  # Adjust -100 for peak height
